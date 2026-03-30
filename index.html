@@ -140,7 +140,7 @@ let aylikChart, katChart;
 
 async function init() {
   // Oturum kontrolü
-  try { await Auth.ben(); } catch { window.location.href = '/BudgetBuddy/pages/giris.html'; return; }
+ try { await Auth.ben(); } catch { window.location.href = '/cerenyurduseven-budgetbuddy/pages/giris.html'; return; }
 
   const [ozet, aylik, kat, tasarruf] = await Promise.all([
     Reports.ozet(), Reports.aylik(), Reports.kategoriler({ tur: 'gider' }), Reports.tasarruf()
