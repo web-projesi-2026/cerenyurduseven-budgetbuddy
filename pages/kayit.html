@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kayıt Ol – BudgetBuddy</title>
+  <link rel="stylesheet" href="../assets/css/style.css" />
+</head>
+<body class="auth-body">
+
+<div class="auth-card">
+  <div class="auth-logo">
+    <div class="logo-icon">💰</div>
+    <span>BudgetBuddy</span>
+  </div>
+  <h1 class="auth-title">Hesap oluştur</h1>
+  <p class="auth-sub">Finansal özgürlüğüne ilk adımı at</p>
+
+  <form class="auth-form" id="registerForm" novalidate>
+    <div class="form-grid cols-2">
+      <div class="form-group">
+        <label class="form-label" for="ad">Ad</label>
+        <input class="form-control" type="text" id="ad" placeholder="Adın" required />
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="soyad">Soyad</label>
+        <input class="form-control" type="text" id="soyad" placeholder="Soyadın" required />
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label" for="email">E-posta Adresi</label>
+      <input class="form-control" type="email" id="email" placeholder="ornek@email.com" required autocomplete="email" />
+    </div>
+    <div class="form-group">
+      <label class="form-label" for="sifre">Şifre</label>
+      <input class="form-control" type="password" id="sifre" placeholder="En az 6 karakter" required autocomplete="new-password" />
+    </div>
+    <div class="form-group">
+      <label class="form-label" for="sifreTekrar">Şifre Tekrar</label>
+      <input class="form-control" type="password" id="sifreTekrar" placeholder="Şifreni tekrar gir" required />
+    </div>
+    <button type="submit" class="btn btn-primary" id="submitBtn" style="width:100%;justify-content:center;padding:13px;">
+      Hesabı Oluştur
+    </button>
+    <div id="errorMsg" style="color:var(--red);font-size:.85rem;text-align:center;display:none;"></div>
+  </form>
+
+  <p class="auth-footer">
+    Zaten hesabın var mı? <a href="giris.html">Giriş yap</a>
+  </p>
+</div>
+
+<div id="toast-container"></div>
+<script src="../assets/js/main.js"></script>
+<script>
+document.getElementById('registerForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const btn    = document.getElementById('submitBtn');
+  const errEl  = document.getElementById('errorMsg');
+  const ad     = document.getElementById('ad').value.trim();
+  const soyad  = document.getElementById('soyad').value.trim();
+  const email  = document.getElementById('email').value.trim();
+  const sifre  = document.getElementById('sifre').value;
+  const tekrar = document.getElementById('sifreTekrar').value;
+
+  if (!ad || !soyad || !email || !sifre) {
+    errEl.textContent = 'Lütfen tüm alanları doldurun.';
+    errEl.style.display = 'block'; return;
+  }
+  if (sifre.length < 6) {
+    errEl.textContent = 'Şifre en az 6 karakter olmalıdır.';
+    errEl.style.display = 'block'; return;
+  }
+  if (sifre !== tekrar) {
+    errEl.textContent = 'Şifreler eşleşmiyor.';
+    errEl.style.display = 'block'; return;
+  }
+
+  btn.disabled = true;
+  btn.innerHTML = '<div class="spinner" style="margin:0 auto;"></div>';
+  errEl.style.display = 'none';
+
+  try {
+    const data = await Auth.kayit(ad, soyad, email, sifre);
+    if (data?.success) {
+      Toast.success('Hesabın oluşturuldu! Yönlendiriliyorsunuz...');
+      setTimeout(() => window.location.href = '/BudgetBuddy/index.html', 800);
+    }
+  } catch (err) {
+    errEl.textContent = err.message || 'Kayıt sırasında bir hata oluştu.';
+    errEl.style.display = 'block';
+    btn.disabled = false;
+    btn.textContent = 'Hesabı Oluştur';
+  }
+});
+</script>
+</body>
+</html>

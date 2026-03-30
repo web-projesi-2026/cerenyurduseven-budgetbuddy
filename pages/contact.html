@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Destek – BudgetBuddy</title>
+  <link rel="stylesheet" href="../assets/css/style.css" />
+</head>
+<body>
+<div class="app-layout">
+  <aside class="sidebar">
+    <div class="sidebar-logo"><div class="logo-icon">💰</div><span>BudgetBuddy</span></div>
+    <nav class="sidebar-nav">
+      <span class="nav-section-title">Genel</span>
+      <a class="nav-link" href="../index.html"><i data-lucide="layout-dashboard"></i> Panel</a>
+      <a class="nav-link" href="project.html"><i data-lucide="list"></i> İşlemler</a>
+      <span class="nav-section-title">Hesap</span>
+      <a class="nav-link" href="about.html"><i data-lucide="user"></i> Profilim</a>
+      <a class="nav-link active" href="contact.html"><i data-lucide="mail"></i> Destek</a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="user-card" id="logoutBtn" title="Çıkış yap">
+        <div class="user-avatar" id="userInitials">--</div>
+        <div class="user-info">
+          <div class="user-name" id="userName">Yükleniyor...</div>
+          <div class="user-email" id="userEmail"></div>
+        </div>
+        <i data-lucide="log-out" style="opacity:.4;flex-shrink:0;"></i>
+      </div>
+    </div>
+  </aside>
+
+  <main class="main-content">
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">Destek & İletişim</h1>
+        <p class="page-subtitle">Sorunlarını bildir, öneri gönder</p>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <!-- İletişim Formu -->
+      <div class="card">
+        <div class="card-title">Mesaj Gönder</div>
+        <form id="contactForm" style="display:flex;flex-direction:column;gap:16px;" novalidate>
+          <div class="form-group">
+            <label class="form-label">Konu</label>
+            <select class="form-control" id="cKonu">
+              <option value="Teknik Sorun">🔧 Teknik Sorun</option>
+              <option value="Öneri">💡 Öneri</option>
+              <option value="Hesap Sorunu">👤 Hesap Sorunu</option>
+              <option value="Veri Sorunu">📊 Veri Sorunu</option>
+              <option value="Diğer">📬 Diğer</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Mesajın</label>
+            <textarea class="form-control" id="cMesaj" rows="6" placeholder="Sorununuzu veya önerinizi detaylıca açıklayın..." required style="resize:vertical;"></textarea>
+          </div>
+          <button type="submit" class="btn btn-primary" id="contactBtn">
+            <i data-lucide="send"></i> Gönder
+          </button>
+          <div id="contactMsg" style="font-size:.85rem;text-align:center;display:none;"></div>
+        </form>
+      </div>
+
+      <!-- SSS -->
+      <div style="display:flex;flex-direction:column;gap:16px;">
+        <div class="card">
+          <div class="card-title">Sık Sorulan Sorular</div>
+          <div style="display:flex;flex-direction:column;gap:0;">
+            <details style="border-bottom:1px solid var(--border);padding:14px 0;">
+              <summary style="cursor:pointer;font-weight:600;color:var(--text-1);list-style:none;">
+                Verilerimi nasıl dışa aktarabilirim?
+              </summary>
+              <p style="color:var(--text-2);font-size:.875rem;margin-top:10px;line-height:1.7;">
+                İşlemler sayfasında tabloyu filtreledikten sonra tarayıcınızın yazdır fonksiyonuyla PDF olarak kaydedebilirsiniz. Excel aktarımı yakında eklenecek.
+              </p>
+            </details>
+            <details style="border-bottom:1px solid var(--border);padding:14px 0;">
+              <summary style="cursor:pointer;font-weight:600;color:var(--text-1);list-style:none;">
+                Kategori ekleyebilir miyim?
+              </summary>
+              <p style="color:var(--text-2);font-size:.875rem;margin-top:10px;line-height:1.7;">
+                Evet! İşlemler sayfasında yeni işlem eklerken özel kategori oluşturabilirsiniz. Özel kategoriler sadece sana görünür.
+              </p>
+            </details>
+            <details style="border-bottom:1px solid var(--border);padding:14px 0;">
+              <summary style="cursor:pointer;font-weight:600;color:var(--text-1);list-style:none;">
+                Şifremi unuttum, ne yapmalıyım?
+              </summary>
+              <p style="color:var(--text-2);font-size:.875rem;margin-top:10px;line-height:1.7;">
+                Şu an için bu formu kullanarak destek talebi oluştur; ekibimiz sana yardım edecek. Şifre sıfırlama özelliği yakında eklenecek.
+              </p>
+            </details>
+            <details style="padding:14px 0;">
+              <summary style="cursor:pointer;font-weight:600;color:var(--text-1);list-style:none;">
+                Verilerim güvende mi?
+              </summary>
+              <p style="color:var(--text-2);font-size:.875rem;margin-top:10px;line-height:1.7;">
+                Şifreler bcrypt ile şifreleniyor. Veriler sadece sana ait ve başka kullanıcılarla paylaşılmıyor.
+              </p>
+            </details>
+          </div>
+        </div>
+
+        <div class="card" style="background:var(--green-dim);border-color:rgba(34,197,94,.2);">
+          <div style="display:flex;align-items:center;gap:12px;">
+            <div style="font-size:2rem;">💬</div>
+            <div>
+              <div style="font-weight:700;color:var(--green);margin-bottom:4px;">Hızlı Destek</div>
+              <div style="font-size:.85rem;color:var(--text-2);">Mesajlarınıza genellikle 24 saat içinde dönüş yapılmaktadır.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<div id="toast-container"></div>
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+<script src="../assets/js/main.js"></script>
+<script>
+(async () => {
+  try { await Auth.ben(); } catch { window.location.href = '/pages/giris.html'; return; }
+  lucide.createIcons();
+})();
+
+document.getElementById('contactForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const btn = document.getElementById('contactBtn');
+  const msg = document.getElementById('contactMsg');
+  const konu  = document.getElementById('cKonu').value;
+  const mesaj = document.getElementById('cMesaj').value.trim();
+  if (!mesaj || mesaj.length < 10) {
+    msg.textContent = 'Lütfen en az 10 karakter mesaj yazın.'; msg.style.color='var(--red)'; msg.style.display='block'; return;
+  }
+  btn.disabled = true;
+  btn.innerHTML = '<div class="spinner" style="margin:0 auto;"></div>';
+  msg.style.display = 'none';
+  try {
+    await api.post('/contact', { konu, mesaj });
+    msg.textContent = '✓ Mesajınız iletildi. En kısa sürede geri döneceğiz.';
+    msg.style.color = 'var(--green)'; msg.style.display = 'block';
+    document.getElementById('contactForm').reset();
+    Toast.success('Mesaj gönderildi!');
+  } catch(err) {
+    msg.textContent = err.message || 'Gönderim sırasında bir hata oluştu.';
+    msg.style.color = 'var(--red)'; msg.style.display = 'block';
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<i data-lucide="send"></i> Gönder';
+    lucide.createIcons();
+  }
+});
+</script>
+</body>
+</html>
