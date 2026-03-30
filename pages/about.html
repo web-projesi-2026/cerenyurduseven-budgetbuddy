@@ -1,1 +1,183 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Profilim – BudgetBuddy</title>
+  <link rel="stylesheet" href="../assets/css/style.css" />
+</head>
+<body>
+<div class="app-layout">
+  <aside class="sidebar">
+    <div class="sidebar-logo"><div class="logo-icon">💰</div><span>BudgetBuddy</span></div>
+    <nav class="sidebar-nav">
+      <span class="nav-section-title">Genel</span>
+      <a class="nav-link" href="../index.html"><i data-lucide="layout-dashboard"></i> Panel</a>
+      <a class="nav-link" href="project.html"><i data-lucide="list"></i> İşlemler</a>
+      <span class="nav-section-title">Hesap</span>
+      <a class="nav-link active" href="about.html"><i data-lucide="user"></i> Profilim</a>
+      <a class="nav-link" href="contact.html"><i data-lucide="mail"></i> Destek</a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="user-card" id="logoutBtn" title="Çıkış yap">
+        <div class="user-avatar" id="userInitials">--</div>
+        <div class="user-info">
+          <div class="user-name" id="userName">Yükleniyor...</div>
+          <div class="user-email" id="userEmail"></div>
+        </div>
+        <i data-lucide="log-out" style="opacity:.4;flex-shrink:0;"></i>
+      </div>
+    </div>
+  </aside>
 
+  <main class="main-content">
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">Profilim</h1>
+        <p class="page-subtitle">Hesap bilgilerini görüntüle ve güncelle</p>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <!-- Profil Kartı -->
+      <div class="card">
+        <div class="card-title">Kullanıcı Bilgileri</div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:16px;padding:16px 0;margin-bottom:24px;">
+          <div id="bigAvatar" style="width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,var(--blue),var(--purple));display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-size:2rem;font-weight:800;color:#fff;">--</div>
+          <div style="text-align:center;">
+            <div style="font-weight:700;font-size:1.1rem;" id="profileFullName">—</div>
+            <div style="color:var(--text-3);font-size:.85rem;" id="profileEmail">—</div>
+          </div>
+        </div>
+
+        <form id="profileForm" style="display:flex;flex-direction:column;gap:14px;" novalidate>
+          <div class="form-grid cols-2">
+            <div class="form-group">
+              <label class="form-label">Ad</label>
+              <input class="form-control" type="text" id="pAd" required />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Soyad</label>
+              <input class="form-control" type="text" id="pSoyad" required />
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">E-posta</label>
+            <input class="form-control" type="email" id="pEmail" disabled style="opacity:.6;cursor:not-allowed;" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Para Birimi</label>
+            <select class="form-control" id="pParaBirimi">
+              <option value="TRY">₺ Türk Lirası (TRY)</option>
+              <option value="USD">$ Amerikan Doları (USD)</option>
+              <option value="EUR">€ Euro (EUR)</option>
+              <option value="GBP">£ İngiliz Sterlini (GBP)</option>
+            </select>
+          </div>
+          <button type="submit" class="btn btn-primary" id="profileSaveBtn">Değişiklikleri Kaydet</button>
+          <div id="profileMsg" style="font-size:.82rem;text-align:center;display:none;"></div>
+        </form>
+      </div>
+
+      <!-- Şifre Değiştir -->
+      <div class="card">
+        <div class="card-title">Şifre Değiştir</div>
+        <form id="passForm" style="display:flex;flex-direction:column;gap:14px;" novalidate>
+          <div class="form-group">
+            <label class="form-label">Mevcut Şifre</label>
+            <input class="form-control" type="password" id="pMevcut" placeholder="••••••••" required />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Yeni Şifre</label>
+            <input class="form-control" type="password" id="pYeni" placeholder="En az 6 karakter" required />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Yeni Şifre Tekrar</label>
+            <input class="form-control" type="password" id="pYeniTekrar" placeholder="••••••••" required />
+          </div>
+          <button type="submit" class="btn btn-secondary">Şifreyi Güncelle</button>
+          <div id="passMsg" style="font-size:.82rem;text-align:center;display:none;"></div>
+        </form>
+
+        <!-- Hesap istatistikleri -->
+        <div class="card-title mt-24">Hesap İstatistikleri</div>
+        <div style="display:flex;flex-direction:column;gap:12px;" id="statsList">
+          <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);">
+            <span style="color:var(--text-2);">Üyelik tarihi</span>
+            <span id="statUyelik" style="font-weight:600;">—</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);">
+            <span style="color:var(--text-2);">Toplam bakiye</span>
+            <span id="statBak" style="font-weight:600;color:var(--blue);">—</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);">
+            <span style="color:var(--text-2);">Toplam gelir</span>
+            <span id="statGel" style="font-weight:600;color:var(--green);">—</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;padding:10px 0;">
+            <span style="color:var(--text-2);">Toplam gider</span>
+            <span id="statGid" style="font-weight:600;color:var(--red);">—</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<div id="toast-container"></div>
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+<script src="../assets/js/main.js"></script>
+<script>
+(async () => {
+  try { await Auth.ben(); } catch { window.location.href = '/pages/giris.html'; return; }
+
+  const [benData, ozetData] = await Promise.all([Auth.ben(), Reports.ozet()]);
+  const u = benData.user;
+
+  document.getElementById('bigAvatar').textContent = (u.ad[0]+u.soyad[0]).toUpperCase();
+  document.getElementById('profileFullName').textContent = `${u.ad} ${u.soyad}`;
+  document.getElementById('profileEmail').textContent = u.email;
+  document.getElementById('pAd').value = u.ad;
+  document.getElementById('pSoyad').value = u.soyad;
+  document.getElementById('pEmail').value = u.email;
+  document.getElementById('pParaBirimi').value = u.para_birimi || 'TRY';
+  document.getElementById('statUyelik').textContent = formatTarih(u.olusturma_tarihi);
+  document.getElementById('statBak').textContent = formatPara(ozetData.bakiye);
+  document.getElementById('statGel').textContent = formatPara(ozetData.toplam_gelir);
+  document.getElementById('statGid').textContent = formatPara(ozetData.toplam_gider);
+
+  lucide.createIcons();
+})();
+
+document.getElementById('profileForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const msg = document.getElementById('profileMsg');
+  const ad    = document.getElementById('pAd').value.trim();
+  const soyad = document.getElementById('pSoyad').value.trim();
+  if (!ad || !soyad) { msg.textContent = 'Ad ve soyad zorunludur.'; msg.style.color='var(--red)'; msg.style.display='block'; return; }
+  try {
+    await api.put('/auth?action=profil', { ad, soyad, para_birimi: document.getElementById('pParaBirimi').value });
+    msg.textContent = 'Profil güncellendi.'; msg.style.color='var(--green)'; msg.style.display='block';
+    Toast.success('Profil kaydedildi');
+    setTimeout(() => msg.style.display='none', 3000);
+  } catch(e) { msg.textContent = e.message; msg.style.color='var(--red)'; msg.style.display='block'; }
+});
+
+document.getElementById('passForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const msg     = document.getElementById('passMsg');
+  const mevcut  = document.getElementById('pMevcut').value;
+  const yeni    = document.getElementById('pYeni').value;
+  const tekrar  = document.getElementById('pYeniTekrar').value;
+  if (yeni.length < 6) { msg.textContent = 'Yeni şifre en az 6 karakter olmalı.'; msg.style.color='var(--red)'; msg.style.display='block'; return; }
+  if (yeni !== tekrar)  { msg.textContent = 'Şifreler eşleşmiyor.'; msg.style.color='var(--red)'; msg.style.display='block'; return; }
+  try {
+    await api.put('/auth?action=sifre', { mevcut_sifre: mevcut, yeni_sifre: yeni });
+    msg.textContent = 'Şifre güncellendi.'; msg.style.color='var(--green)'; msg.style.display='block';
+    document.getElementById('passForm').reset();
+    Toast.success('Şifre değiştirildi');
+  } catch(e) { msg.textContent = e.message; msg.style.color='var(--red)'; msg.style.display='block'; }
+});
+</script>
+</body>
+</html>
