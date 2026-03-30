@@ -44,7 +44,7 @@
 (async () => {
   try {
     const d = await Auth.ben();
-    if (d?.user) window.location.href = '/BudgetBuddy/index.html';
+    if (d?.user) window.location.href = '/cerenyurduseven-budgetbuddy/index.html';
   } catch {}
 })();
 
@@ -65,7 +65,7 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
     const data = await Auth.giris(email, sifre);
     if (data?.success) {
       Toast.success('Giriş başarılı! Yönlendiriliyorsunuz...');
-      ssetTimeout(() => window.location.href = '/cerenyurduseven-budgetbuddy/index.html', 800);
+      setTimeout(() => window.location.href = '/cerenyurduseven-budgetbuddy/index.html', 800);
     }
   } catch (err) {
     errEl.textContent = err.message || 'Giriş yapılırken bir hata oluştu.';
