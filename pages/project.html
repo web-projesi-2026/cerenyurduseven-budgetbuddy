@@ -1,3 +1,182 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>İşlemler – BudgetBuddy</title>
+  <link rel="stylesheet" href="../assets/css/style.css" />
+</head>
+<body>
+<div class="app-layout">
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-icon">💰</div>
+      <span>BudgetBuddy</span>
+    </div>
+    <nav class="sidebar-nav">
+      <span class="nav-section-title">Genel</span>
+      <a class="nav-link" href="../index.html"><i data-lucide="layout-dashboard"></i> Panel</a>
+      <a class="nav-link active" href="project.html"><i data-lucide="list"></i> İşlemler</a>
+      <span class="nav-section-title">Hesap</span>
+      <a class="nav-link" href="about.html"><i data-lucide="user"></i> Profilim</a>
+      <a class="nav-link" href="contact.html"><i data-lucide="mail"></i> Destek</a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="user-card" id="logoutBtn" title="Çıkış yap">
+        <div class="user-avatar" id="userInitials">--</div>
+        <div class="user-info">
+          <div class="user-name" id="userName">Yükleniyor...</div>
+          <div class="user-email" id="userEmail"></div>
+        </div>
+        <i data-lucide="log-out" style="opacity:.4;flex-shrink:0;"></i>
+      </div>
+    </div>
+  </aside>
+
+  <main class="main-content">
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">İşlemler</h1>
+        <p class="page-subtitle">Tüm gelir ve giderlerini yönet</p>
+      </div>
+      <button class="btn btn-primary" id="newBtn"><i data-lucide="plus"></i> Yeni İşlem</button>
+    </div>
+
+    <!-- Filtreler -->
+    <div class="filter-bar">
+      <div class="form-group">
+        <label class="form-label">Tür</label>
+        <select class="form-control" id="filterTur">
+          <option value="">Tümü</option>
+          <option value="gelir">Gelir</option>
+          <option value="gider">Gider</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Kategori</label>
+        <select class="form-control" id="filterKat"><option value="">Tümü</option></select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Başlangıç</label>
+        <input class="form-control" type="date" id="filterBas" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Bitiş</label>
+        <input class="form-control" type="date" id="filterBit" />
+      </div>
+      <button class="btn btn-secondary" id="filterBtn"><i data-lucide="search"></i> Filtrele</button>
+      <button class="btn btn-ghost" id="resetBtn"><i data-lucide="x"></i></button>
+    </div>
+
+    <!-- Özet -->
+    <div class="stats-grid mb-24" style="grid-template-columns:repeat(3,1fr);">
+      <div class="stat-card gelir">
+        <div class="stat-label">Toplam Gelir</div>
+        <div class="stat-value" id="ozGelir">—</div>
+      </div>
+      <div class="stat-card gider">
+        <div class="stat-label">Toplam Gider</div>
+        <div class="stat-value" id="ozGider">—</div>
+      </div>
+      <div class="stat-card bakiye">
+        <div class="stat-label">Net Bakiye</div>
+        <div class="stat-value" id="ozBakiye">—</div>
+      </div>
+    </div>
+
+    <!-- Tablo -->
+    <div class="card" style="padding:0;">
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Tarih</th>
+              <th>Açıklama</th>
+              <th>Kategori</th>
+              <th>Tür</th>
+              <th class="text-right">Miktar</th>
+              <th class="text-center">İşlemler</th>
+            </tr>
+          </thead>
+          <tbody id="tableBody">
+            <tr><td colspan="6"><div class="empty-state"><div class="spinner" style="margin:0 auto;"></div></div></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Ekle / Düzenle Modal -->
+<div class="modal-overlay" id="txModal">
+  <div class="modal">
+    <div class="modal-title">
+      <span id="modalTitle">Yeni İşlem</span>
+      <button class="btn btn-ghost btn-icon" data-close-modal="txModal"><i data-lucide="x"></i></button>
+    </div>
+    <form id="txForm" novalidate>
+      <input type="hidden" id="editId" />
+      <div class="form-grid" style="gap:16px;">
+        <div class="form-group">
+          <label class="form-label">Tür</label>
+          <div style="display:flex;gap:10px;">
+            <label style="flex:1;display:flex;align-items:center;gap:8px;padding:10px 14px;background:var(--bg-2);border:1px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;">
+              <input type="radio" name="tur" value="gider" checked style="accent-color:var(--red);" /> <span style="color:var(--red);font-weight:600;">↓ Gider</span>
+            </label>
+            <label style="flex:1;display:flex;align-items:center;gap:8px;padding:10px 14px;background:var(--bg-2);border:1px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;">
+              <input type="radio" name="tur" value="gelir" style="accent-color:var(--green);" /> <span style="color:var(--green);font-weight:600;">↑ Gelir</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Kategori</label>
+          <select class="form-control" id="formKat" required><option value="">Seçin...</option></select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Miktar (₺)</label>
+          <input class="form-control" type="number" id="formMiktar" min="0.01" step="0.01" placeholder="0,00" required />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Tarih</label>
+          <input class="form-control" type="date" id="formTarih" required />
+        </div>
+
+        <div class="form-group" style="grid-column:1/-1;">
+          <label class="form-label">Açıklama <span style="color:var(--text-3)">(isteğe bağlı)</span></label>
+          <input class="form-control" type="text" id="formAciklama" placeholder="Kısa bir not..." maxlength="255" />
+        </div>
+      </div>
+
+      <div style="display:flex;gap:10px;margin-top:24px;">
+        <button type="submit" class="btn btn-primary" id="saveBtn" style="flex:1;justify-content:center;">Kaydet</button>
+        <button type="button" class="btn btn-secondary" data-close-modal="txModal">İptal</button>
+      </div>
+      <div id="formErr" style="color:var(--red);font-size:.82rem;margin-top:10px;display:none;"></div>
+    </form>
+  </div>
+</div>
+
+<!-- Silme Onay Modal -->
+<div class="modal-overlay" id="delModal">
+  <div class="modal" style="max-width:380px;text-align:center;">
+    <div style="font-size:2.5rem;margin-bottom:12px;">🗑️</div>
+    <h3 style="margin-bottom:8px;">Kaydı Sil</h3>
+    <p style="color:var(--text-2);font-size:.9rem;margin-bottom:24px;">Bu işlem kalıcı olarak silinecek. Devam etmek istiyor musun?</p>
+    <div style="display:flex;gap:10px;">
+      <button class="btn btn-danger" id="confirmDel" style="flex:1;justify-content:center;">Evet, Sil</button>
+      <button class="btn btn-secondary" data-close-modal="delModal" style="flex:1;justify-content:center;">Vazgeç</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast-container"></div>
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+<script src="../assets/js/main.js"></script>
 <script>
 let allCategories = [];
 let deleteId = null;
@@ -37,7 +216,6 @@ async function loadTransactions() {
     const data = await Transactions.list(params);
     const list = data.transactions;
 
-    // Özet hesapla
     const gelir  = list.filter(t => t.tur === 'gelir').reduce((s,t) => s + Number(t.miktar), 0);
     const gider  = list.filter(t => t.tur === 'gider').reduce((s,t) => s + Number(t.miktar), 0);
     document.getElementById('ozGelir').textContent  = formatPara(gelir);
@@ -162,3 +340,5 @@ document.getElementById('resetBtn').addEventListener('click', () => {
   lucide.createIcons();
 })();
 </script>
+</body>
+</html>
