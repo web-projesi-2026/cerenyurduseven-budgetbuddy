@@ -3,7 +3,7 @@
 // API istemcisi + yardımcı fonksiyonlar
 // ============================================
 
-const API_BASE = '/BudgetBuddy/api';
+const API_BASE = '/cerenyurduseven-budgetbuddy/api';
 
 // ─── API İstemcisi ──────────────────────────
 const api = {
@@ -21,7 +21,7 @@ const api = {
   if (res.status === 401) {
       const currentPage = window.location.pathname;
       if (!currentPage.includes('giris.html') && !currentPage.includes('kayit.html')) {
-        window.location.href = '/BudgetBuddy/pages/giris.html';
+       window.location.href = '/cerenyurduseven-budgetbuddy/pages/giris.html';
       }
       return;
     }
@@ -44,7 +44,7 @@ const Auth = {
   },
   async cikis() {
     await api.post('/auth?action=cikis');
-    window.location.href = '/BudgetBuddy/pages/giris.html';
+    window.location.href = '/cerenyurduseven-budgetbuddy/pages/giris.html';
   },
   async ben() {
     return api.get('/auth?action=ben');
