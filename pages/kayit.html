@@ -84,7 +84,7 @@ document.getElementById('registerForm').addEventListener('submit', async (e) => 
     const data = await Auth.kayit(ad, soyad, email, sifre);
     if (data?.success) {
       Toast.success('Hesabın oluşturuldu! Yönlendiriliyorsunuz...');
-      setTimeout(() => window.location.href = '/BudgetBuddy/index.html', 800);
+      setTimeout(() => window.location.href = '/cerenyurduseven-budgetbuddy/index.html', 800);
     }
   } catch (err) {
     errEl.textContent = err.message || 'Kayıt sırasında bir hata oluştu.';
