@@ -54,13 +54,10 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
   const errEl = document.getElementById('errorMsg');
   const email = document.getElementById('email').value.trim();
   const sifre = document.getElementById('sifre').value;
-
   if (!email || !sifre) { errEl.textContent = 'Lütfen tüm alanları doldurun.'; errEl.style.display = 'block'; return; }
-
   btn.disabled = true;
   btn.innerHTML = '<div class="spinner" style="margin:0 auto;"></div>';
   errEl.style.display = 'none';
-
   try {
     const data = await Auth.giris(email, sifre);
     if (data?.success) {
@@ -75,5 +72,3 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
   }
 });
 </script>
-</body>
-</html>
