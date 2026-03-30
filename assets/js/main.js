@@ -1,78 +1,198 @@
 // ============================================
-// BudgetBuddy – main.js
-// API istemcisi + yardımcı fonksiyonlar
+// BudgetBuddy – main.js (localStorage versiyonu)
 // ============================================
 
-const API_BASE = '/cerenyurduseven-budgetbuddy/api';
-
-// ─── API İstemcisi ──────────────────────────
-const api = {
-  async request(method, path, body = null) {
-    const opts = {
-      method,
-      headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
-      credentials: 'same-origin',
-    };
-    if (body) opts.body = JSON.stringify(body);
-
-    const res = await fetch(API_BASE + path, opts);
-    const data = await res.json();
-
-  if (res.status === 401) {
-      const currentPage = window.location.pathname;
-      if (!currentPage.includes('giris.html') && !currentPage.includes('kayit.html')) {
-       window.location.href = '/cerenyurduseven-budgetbuddy/pages/giris.html';
-      }
-      return;
-    }
-    if (!res.ok && data.error) throw new Error(data.error);
-    return data;
+// ─── LocalStorage Veritabanı ─────────────────
+const DB = {
+  get(key, def = null) {
+    try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : def; } catch { return def; }
   },
-  get   : (path)        => api.request('GET',    path),
-  post  : (path, body)  => api.request('POST',   path, body),
-  put   : (path, body)  => api.request('PUT',    path, body),
-  delete: (path)        => api.request('DELETE', path),
+  set(key, val) {
+    try { localStorage.setItem(key, JSON.stringify(val)); } catch {}
+  },
 };
 
-// ─── Auth Yardımcıları ───────────────────────
+// ─── Auth ────────────────────────────────────
 const Auth = {
   async giris(email, sifre) {
-    return api.post('/auth?action=giris', { email, sifre });
+    const users = DB.get('bb_users', []);
+    const user = users.find(u => u.email === email && u.sifre === sifre);
+    if (!user) throw new Error('E-posta veya şifre hatalı.');
+    DB.set('bb_session', { user: { id: user.id, ad: user.ad, soyad: user.soyad, email: user.email } });
+    return { success: true };
   },
   async kayit(ad, soyad, email, sifre) {
-    return api.post('/auth?action=kayit', { ad, soyad, email, sifre });
+    const users = DB.get('bb_users', []);
+    if (users.find(u => u.email === email)) throw new Error('Bu e-posta zaten kayıtlı.');
+    const user = { id: Date.now(), ad, soyad, email, sifre };
+    users.push(user);
+    DB.set('bb_users', users);
+    DB.set('bb_session', { user: { id: user.id, ad, soyad, email } });
+    return { success: true };
   },
   async cikis() {
-    await api.post('/auth?action=cikis');
+    DB.set('bb_session', null);
     window.location.href = '/cerenyurduseven-budgetbuddy/pages/giris.html';
   },
   async ben() {
-    return api.get('/auth?action=ben');
+    const session = DB.get('bb_session');
+    if (!session?.user) throw new Error('Oturum yok');
+    return session;
   },
 };
 
+// ─── Kullanıcı ID ─────────────────────────────
+function getUserId() {
+  return DB.get('bb_session')?.user?.id || null;
+}
+
 // ─── İşlemler ───────────────────────────────
 const Transactions = {
-  list  : (params = {}) => api.get('/transactions?' + new URLSearchParams(params)),
-  create: (data)        => api.post('/transactions', data),
-  update: (id, data)    => api.put('/transactions?id=' + id, data),
-  remove: (id)          => api.delete('/transactions?id=' + id),
+  _key() { return `bb_transactions_${getUserId()}`; },
+  _all() { return DB.get(this._key(), []); },
+  list(params = {}) {
+    let data = this._all();
+    if (params.tur) data = data.filter(t => t.tur === params.tur);
+    if (params.kategori_id) data = data.filter(t => t.kategori_id == params.kategori_id);
+    data.sort((a, b) => new Date(b.tarih) - new Date(a.tarih));
+    return Promise.resolve({ transactions: data });
+  },
+  create(data) {
+    const all = this._all();
+    const cats = Categories._all();
+    const cat = cats.find(c => c.id == data.kategori_id) || { ad: 'Diğer', renk: '#6b7280' };
+    const t = { id: Date.now(), ...data, kategori: cat.ad, renk: cat.renk, olusturulma: new Date().toISOString() };
+    all.unshift(t);
+    DB.set(this._key(), all);
+    return Promise.resolve({ success: true, transaction: t });
+  },
+  update(id, data) {
+    const all = this._all();
+    const i = all.findIndex(t => t.id == id);
+    if (i === -1) throw new Error('İşlem bulunamadı');
+    const cats = Categories._all();
+    const cat = cats.find(c => c.id == data.kategori_id) || { ad: 'Diğer', renk: '#6b7280' };
+    all[i] = { ...all[i], ...data, kategori: cat.ad, renk: cat.renk };
+    DB.set(this._key(), all);
+    return Promise.resolve({ success: true });
+  },
+  remove(id) {
+    const all = this._all().filter(t => t.id != id);
+    DB.set(this._key(), all);
+    return Promise.resolve({ success: true });
+  },
 };
 
 // ─── Kategoriler ─────────────────────────────
+const DEFAULT_CATS = [
+  { id: 1, ad: 'Maaş',        tur: 'gelir',  renk: '#22c55e' },
+  { id: 2, ad: 'Serbest',     tur: 'gelir',  renk: '#10b981' },
+  { id: 3, ad: 'Yatırım',     tur: 'gelir',  renk: '#3b82f6' },
+  { id: 4, ad: 'Diğer Gelir', tur: 'gelir',  renk: '#8b5cf6' },
+  { id: 5, ad: 'Market',      tur: 'gider',  renk: '#ef4444' },
+  { id: 6, ad: 'Faturalar',   tur: 'gider',  renk: '#f97316' },
+  { id: 7, ad: 'Ulaşım',      tur: 'gider',  renk: '#eab308' },
+  { id: 8, ad: 'Kira',        tur: 'gider',  renk: '#ec4899' },
+  { id: 9, ad: 'Sağlık',      tur: 'gider',  renk: '#06b6d4' },
+  { id: 10, ad: 'Eğlence',    tur: 'gider',  renk: '#a855f7' },
+  { id: 11, ad: 'Eğitim',     tur: 'gider',  renk: '#14b8a6' },
+  { id: 12, ad: 'Diğer',      tur: 'gider',  renk: '#6b7280' },
+];
+
 const Categories = {
-  list  : ()      => api.get('/categories'),
-  create: (data)  => api.post('/categories', data),
-  remove: (id)    => api.delete('/categories?id=' + id),
+  _key() { return `bb_categories_${getUserId()}`; },
+  _all() {
+    const stored = DB.get(this._key());
+    if (!stored) { DB.set(this._key(), DEFAULT_CATS); return DEFAULT_CATS; }
+    return stored;
+  },
+  list() { return Promise.resolve({ categories: this._all() }); },
+  create(data) {
+    const all = this._all();
+    const cat = { id: Date.now(), ...data };
+    all.push(cat);
+    DB.set(this._key(), all);
+    return Promise.resolve({ success: true, category: cat });
+  },
+  remove(id) {
+    const all = this._all().filter(c => c.id != id);
+    DB.set(this._key(), all);
+    return Promise.resolve({ success: true });
+  },
 };
 
 // ─── Raporlar ───────────────────────────────
 const Reports = {
-  ozet      : ()       => api.get('/reports?action=ozet'),
-  aylik     : ()       => api.get('/reports?action=aylik'),
-  kategoriler: (params)=> api.get('/reports?action=kategoriler&' + new URLSearchParams(params)),
-  haftalik  : ()       => api.get('/reports?action=haftalik'),
-  tasarruf  : ()       => api.get('/reports?action=tasarruf'),
+  ozet() {
+    const all = Transactions._all();
+    const now = new Date();
+    const buAy = all.filter(t => {
+      const d = new Date(t.tarih);
+      return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+    });
+    const sum = (arr, tur) => arr.filter(t => t.tur === tur).reduce((s, t) => s + Number(t.miktar), 0);
+    const totalGelir = sum(all, 'gelir');
+    const totalGider = sum(all, 'gider');
+    return Promise.resolve({
+      bakiye: totalGelir - totalGider,
+      toplam_gelir: totalGelir,
+      toplam_gider: totalGider,
+      bu_ay: {
+        gelir: sum(buAy, 'gelir'),
+        gider: sum(buAy, 'gider'),
+        bakiye: sum(buAy, 'gelir') - sum(buAy, 'gider'),
+      },
+      son_islemler: all.slice(0, 10),
+    });
+  },
+  aylik() {
+    const all = Transactions._all();
+    const now = new Date();
+    const aylar = [];
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const ay = all.filter(t => {
+        const td = new Date(t.tarih);
+        return td.getMonth() === d.getMonth() && td.getFullYear() === d.getFullYear();
+      });
+      aylar.push({
+        etiket: d.toLocaleDateString('tr-TR', { month: 'short', year: '2-digit' }),
+        gelir: ay.filter(t => t.tur === 'gelir').reduce((s, t) => s + Number(t.miktar), 0),
+        gider: ay.filter(t => t.tur === 'gider').reduce((s, t) => s + Number(t.miktar), 0),
+      });
+    }
+    return Promise.resolve({ aylik: aylar });
+  },
+  kategoriler(params = {}) {
+    const all = Transactions._all();
+    const filtered = params.tur ? all.filter(t => t.tur === params.tur) : all;
+    const map = {};
+    filtered.forEach(t => {
+      if (!map[t.kategori]) map[t.kategori] = { kategori: t.kategori, renk: t.renk, toplam: 0 };
+      map[t.kategori].toplam += Number(t.miktar);
+    });
+    return Promise.resolve({ kategoriler: Object.values(map) });
+  },
+  tasarruf() {
+    const hedefler = DB.get(`bb_hedefler_${getUserId()}`, []);
+    return Promise.resolve({ hedefler });
+  },
+  haftalik() {
+    const all = Transactions._all();
+    const now = new Date();
+    const gunler = [];
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(now); d.setDate(now.getDate() - i);
+      const dateStr = d.toISOString().split('T')[0];
+      const gun = all.filter(t => t.tarih === dateStr);
+      gunler.push({
+        etiket: d.toLocaleDateString('tr-TR', { weekday: 'short' }),
+        gelir: gun.filter(t => t.tur === 'gelir').reduce((s, t) => s + Number(t.miktar), 0),
+        gider: gun.filter(t => t.tur === 'gider').reduce((s, t) => s + Number(t.miktar), 0),
+      });
+    }
+    return Promise.resolve({ haftalik: gunler });
+  },
 };
 
 // ─── Toast Bildirimleri ──────────────────────
@@ -89,7 +209,10 @@ const Toast = {
     const icon = { success: '✓', error: '✕', info: 'ℹ' }[type] || 'ℹ';
     t.innerHTML = `<span>${icon}</span><span>${msg}</span>`;
     container.appendChild(t);
-    setTimeout(() => { t.style.opacity = '0'; t.style.transform = 'translateX(20px)'; t.style.transition = '.3s'; setTimeout(() => t.remove(), 300); }, duration);
+    setTimeout(() => {
+      t.style.opacity = '0'; t.style.transform = 'translateX(20px)'; t.style.transition = '.3s';
+      setTimeout(() => t.remove(), 300);
+    }, duration);
   },
   success: (m) => Toast.show(m, 'success'),
   error  : (m) => Toast.show(m, 'error'),
@@ -98,7 +221,7 @@ const Toast = {
 
 // ─── Para Birimi Formatı ─────────────────────
 function formatPara(amount, currency = 'TRY') {
-  return new Intl.NumberFormat('tr-TR', { style: 'currency', currency, minimumFractionDigits: 2 }).format(amount);
+  return new Intl.NumberFormat('tr-TR', { style: 'currency', currency, minimumFractionDigits: 2 }).format(amount || 0);
 }
 
 // ─── Tarih Formatı ──────────────────────────
