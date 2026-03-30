@@ -65,7 +65,7 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
     const data = await Auth.giris(email, sifre);
     if (data?.success) {
       Toast.success('Giriş başarılı! Yönlendiriliyorsunuz...');
-      setTimeout(() => window.location.href = '/BudgetBuddy/index.html', 800);
+      ssetTimeout(() => window.location.href = '/cerenyurduseven-budgetbuddy/index.html', 800);
     }
   } catch (err) {
     errEl.textContent = err.message || 'Giriş yapılırken bir hata oluştu.';
