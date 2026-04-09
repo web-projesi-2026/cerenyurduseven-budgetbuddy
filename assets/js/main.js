@@ -12,6 +12,58 @@ const DB = {
   },
 };
 
+// ─── Demo Veriler ─────────────────────────────
+function loadDemoData() {
+  const DEMO_USER_ID = 'demo_user';
+  const demoUser = { id: DEMO_USER_ID, ad: 'Demo', soyad: 'Kullanıcı', email: 'demo@budgetbuddy.com', sifre: 'demo123' };
+
+  // Kullanıcı yoksa ekle
+  const users = DB.get('bb_users', []);
+  if (!users.find(u => u.email === demoUser.email)) {
+    users.push(demoUser);
+    DB.set('bb_users', users);
+  }
+
+  // Demo işlemler yoksa ekle
+  const txKey = `bb_transactions_${DEMO_USER_ID}`;
+  if (!DB.get(txKey)) {
+    const bugun = new Date();
+    const tarih = (ay, gun) => {
+      const d = new Date(bugun.getFullYear(), bugun.getMonth() - ay, gun);
+      return d.toISOString().split('T')[0];
+    };
+    DB.set(txKey, [
+      { id: 1, tur: 'gelir',  miktar: 25000, aciklama: 'Maaş',           kategori: 'Maaş',     renk: '#22c55e', kategori_id: 1, tarih: tarih(0, 1)  },
+      { id: 2, tur: 'gider',  miktar: 8500,  aciklama: 'Kira',            kategori: 'Kira',     renk: '#ec4899', kategori_id: 8, tarih: tarih(0, 3)  },
+      { id: 3, tur: 'gider',  miktar: 1200,  aciklama: 'Market alışveriş',kategori: 'Market',   renk: '#ef4444', kategori_id: 5, tarih: tarih(0, 5)  },
+      { id: 4, tur: 'gider',  miktar: 650,   aciklama: 'Elektrik faturası',kategori: 'Faturalar',renk: '#f97316', kategori_id: 6, tarih: tarih(0, 6)  },
+      { id: 5, tur: 'gelir',  miktar: 3500,  aciklama: 'Freelance proje', kategori: 'Serbest',  renk: '#10b981', kategori_id: 2, tarih: tarih(0, 8)  },
+      { id: 6, tur: 'gider',  miktar: 420,   aciklama: 'Ulaşım kartı',    kategori: 'Ulaşım',   renk: '#eab308', kategori_id: 7, tarih: tarih(0, 10) },
+      { id: 7, tur: 'gider',  miktar: 890,   aciklama: 'Spor salonu',     kategori: 'Sağlık',   renk: '#06b6d4', kategori_id: 9, tarih: tarih(0, 12) },
+      { id: 8, tur: 'gelir',  miktar: 25000, aciklama: 'Maaş',            kategori: 'Maaş',     renk: '#22c55e', kategori_id: 1, tarih: tarih(1, 1)  },
+      { id: 9, tur: 'gider',  miktar: 8500,  aciklama: 'Kira',            kategori: 'Kira',     renk: '#ec4899', kategori_id: 8, tarih: tarih(1, 3)  },
+      { id:10, tur: 'gider',  miktar: 2100,  aciklama: 'Market alışveriş',kategori: 'Market',   renk: '#ef4444', kategori_id: 5, tarih: tarih(1, 7)  },
+      { id:11, tur: 'gelir',  miktar: 25000, aciklama: 'Maaş',            kategori: 'Maaş',     renk: '#22c55e', kategori_id: 1, tarih: tarih(2, 1)  },
+      { id:12, tur: 'gider',  miktar: 8500,  aciklama: 'Kira',            kategori: 'Kira',     renk: '#ec4899', kategori_id: 8, tarih: tarih(2, 3)  },
+      { id:13, tur: 'gider',  miktar: 1800,  aciklama: 'Alışveriş',       kategori: 'Eğlence',  renk: '#a855f7', kategori_id:10, tarih: tarih(2, 15) },
+      { id:14, tur: 'gelir',  miktar: 2000,  aciklama: 'Yatırım getirisi',kategori: 'Yatırım',  renk: '#3b82f6', kategori_id: 3, tarih: tarih(2, 20) },
+    ]);
+  }
+
+  // Demo tasarruf hedefleri
+  const hedefKey = `bb_hedefler_${DEMO_USER_ID}`;
+  if (!DB.get(hedefKey)) {
+    DB.set(hedefKey, [
+      { id: 1, baslik: 'Tatil Fonu',    hedef_miktar: 15000, mevcut_miktar: 6500, bitis_tarihi: '2026-08-01', yuzde: 43 },
+      { id: 2, baslik: 'Acil Durum',    hedef_miktar: 30000, mevcut_miktar: 12000, bitis_tarihi: '2026-12-31', yuzde: 40 },
+      { id: 3, baslik: 'Yeni Bilgisayar',hedef_miktar: 25000, mevcut_miktar: 18000, bitis_tarihi: '2026-06-01', yuzde: 72 },
+    ]);
+  }
+}
+
+// Demo verileri yükle
+loadDemoData();
+
 // ─── Auth ────────────────────────────────────
 const Auth = {
   async giris(email, sifre) {
