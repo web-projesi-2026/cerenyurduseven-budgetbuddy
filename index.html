@@ -10,9 +10,21 @@
 </head>
 <body>
 
+<!-- Hamburger Menü Butonu -->
+<button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Menüyü aç/kapat">
+  <div class="bars">
+    <span class="bar"></span>
+    <span class="bar"></span>
+    <span class="bar"></span>
+  </div>
+</button>
+
+<!-- Sidebar Overlay -->
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
 <div class="app-layout">
   <!-- Sidebar -->
-  <aside class="sidebar">
+  <aside class="sidebar" id="sidebar">
     <div class="sidebar-logo">
       <div class="logo-icon">💰</div>
       <span>BudgetBuddy</span>
@@ -234,6 +246,36 @@ async function init() {
 }
 
 init().catch(err => { Toast.error('Veriler yüklenirken hata oluştu'); console.error(err); });
+
+// ── Hamburger Menü ──────────────────────────────
+(function () {
+  const btn     = document.getElementById('mobileMenuBtn');
+  const sidebar = document.getElementById('sidebar');
+  const overlay = document.getElementById('sidebarOverlay');
+  if (!btn || !sidebar || !overlay) return;
+
+  function openSidebar() {
+    sidebar.classList.add('open');
+    overlay.classList.add('visible');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeSidebar() {
+    sidebar.classList.remove('open');
+    overlay.classList.remove('visible');
+    document.body.style.overflow = '';
+  }
+
+  btn.addEventListener('click', () =>
+    sidebar.classList.contains('open') ? closeSidebar() : openSidebar()
+  );
+  overlay.addEventListener('click', closeSidebar);
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeSidebar(); });
+
+  // Ekran büyüyünce sidebar'ı sıfırla
+  window.addEventListener('resize', () => {
+    if (window.innerWidth > 768) closeSidebar();
+  });
+})();
 </script>
 </body>
 </html>
