@@ -5,6 +5,46 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Giriş Yap – BudgetBuddy</title>
   <link rel="stylesheet" href="../assets/css/style.css" />
+  <style>
+    .security-badge {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(34,197,94,.08);
+      border: 1px solid rgba(34,197,94,.2);
+      border-radius: 8px;
+      padding: 10px 14px;
+      margin-bottom: 20px;
+      font-size: .8rem;
+      color: #22c55e;
+    }
+    .eye-emoji {
+      font-size: 2.5rem;
+      text-align: center;
+      margin-bottom: 4px;
+      transition: all .3s ease;
+      display: block;
+    }
+    .password-wrapper {
+      position: relative;
+    }
+    .password-wrapper input {
+      padding-right: 44px;
+    }
+    .toggle-pw {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--text-3);
+      font-size: 16px;
+      padding: 4px;
+    }
+    .toggle-pw:hover { color: var(--text-1); }
+  </style>
 </head>
 <body class="auth-body">
 
@@ -16,14 +56,24 @@
   <h1 class="auth-title">Tekrar hoş geldin</h1>
   <p class="auth-sub">Bütçeni yönetmeye devam et</p>
 
+  <div class="security-badge">
+    🔒 256-bit SSL şifreleme ile korunmaktadır. Verileriniz güvende!
+  </div>
+
   <form class="auth-form" id="loginForm" novalidate>
     <div class="form-group">
       <label class="form-label" for="email">E-posta Adresi</label>
       <input class="form-control" type="email" id="email" placeholder="ornek@email.com" required autocomplete="email" />
     </div>
     <div class="form-group">
-      <label class="form-label" for="sifre">Şifre</label>
-      <input class="form-control" type="password" id="sifre" placeholder="••••••••" required autocomplete="current-password" />
+      <label class="form-label" for="sifre">
+        <span id="eyeEmoji" class="eye-emoji">😊</span>
+        Şifre
+      </label>
+      <div class="password-wrapper">
+        <input class="form-control" type="password" id="sifre" placeholder="••••••••" required autocomplete="current-password" />
+        <button type="button" class="toggle-pw" id="togglePw" title="Şifreyi göster/gizle">👁</button>
+      </div>
     </div>
     <button type="submit" class="btn btn-primary" id="submitBtn" style="width:100%;justify-content:center;padding:13px;">
       Giriş Yap
@@ -48,12 +98,38 @@
   } catch {}
 })();
 
+// Göz kırpan emoji - şifre yazılınca gözlerini kapatır
+const sifreInput = document.getElementById('sifre');
+const eyeEmoji   = document.getElementById('eyeEmoji');
+const togglePw   = document.getElementById('togglePw');
+
+sifreInput.addEventListener('input', () => {
+  eyeEmoji.textContent = sifreInput.value.length > 0 ? '🙈' : '😊';
+});
+sifreInput.addEventListener('blur', () => {
+  eyeEmoji.textContent = '😊';
+});
+
+// Şifre göster/gizle
+togglePw.addEventListener('click', () => {
+  if (sifreInput.type === 'password') {
+    sifreInput.type = 'text';
+    togglePw.textContent = '🙈';
+    eyeEmoji.textContent = '😮';
+  } else {
+    sifreInput.type = 'password';
+    togglePw.textContent = '👁';
+    eyeEmoji.textContent = '🙈';
+  }
+});
+
+// Giriş formu
 document.getElementById('loginForm').addEventListener('submit', async (e) => {
   e.preventDefault();
-  const btn = document.getElementById('submitBtn');
+  const btn   = document.getElementById('submitBtn');
   const errEl = document.getElementById('errorMsg');
   const email = document.getElementById('email').value.trim();
-  const sifre = document.getElementById('sifre').value;
+  const sifre = sifreInput.value;
   if (!email || !sifre) { errEl.textContent = 'Lütfen tüm alanları doldurun.'; errEl.style.display = 'block'; return; }
   btn.disabled = true;
   btn.innerHTML = '<div class="spinner" style="margin:0 auto;"></div>';
@@ -72,3 +148,5 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
   }
 });
 </script>
+</body>
+</html>
