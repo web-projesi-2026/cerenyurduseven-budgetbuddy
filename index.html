@@ -61,8 +61,9 @@
   <main class="main-content">
     <div class="page-header">
       <div>
-        <h1 class="page-title">Panel</h1>
+        <h1 class="page-title" id="welcomeTitle">Panel</h1>
         <p class="page-subtitle" id="dateStr"></p>
+        <p id="welcomeMsg" style="font-size:.9rem;color:var(--green);margin-top:4px;font-weight:500;display:none;"></p>
       </div>
       <a href="pages/project.html" class="btn btn-primary">
         <i data-lucide="plus"></i> Yeni İşlem
@@ -146,7 +147,33 @@
 <script src="assets/js/main.js"></script>
 <script>
 // Tarih
+// Tarih
 document.getElementById('dateStr').textContent = new Date().toLocaleDateString('tr-TR', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+
+// Karşılama mesajı
+(function() {
+  var session = JSON.parse(localStorage.getItem('bb_session') || 'null');
+  var ad = session && session.user ? session.user.ad : null;
+  if (!ad) return;
+
+  var hour = new Date().getHours();
+  var greeting = hour < 12 ? 'Günaydın' : hour < 18 ? 'İyi günler' : 'İyi akşamlar';
+
+  var titleEl = document.getElementById('welcomeTitle');
+  var msgEl   = document.getElementById('welcomeMsg');
+
+  titleEl.textContent = greeting + ', ' + ad + '! 👋';
+  msgEl.style.display = 'block';
+
+  var msgs = [
+    '💰 Bugün bütçeni kontrol etmeyi unutma!',
+    '📊 Finansal hedeflerine bir adım daha yakınsın.',
+    '🎯 Tasarruf etmek bir alışkanlıktır, devam et!',
+    '✨ Harika gidiyorsun, bütçeni takip etmeye devam et!',
+    '📈 Küçük adımlar, büyük kazanımlar yaratır.'
+  ];
+  msgEl.textContent = msgs[Math.floor(Math.random() * msgs.length)];
+})();
 
 let aylikChart, katChart;
 
