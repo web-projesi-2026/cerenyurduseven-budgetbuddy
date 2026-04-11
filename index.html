@@ -247,35 +247,6 @@ async function init() {
 
 init().catch(err => { Toast.error('Veriler yüklenirken hata oluştu'); console.error(err); });
 
-// ── Hamburger Menü ──────────────────────────────
-(function () {
-  const btn     = document.getElementById('mobileMenuBtn');
-  const sidebar = document.getElementById('sidebar');
-  const overlay = document.getElementById('sidebarOverlay');
-  if (!btn || !sidebar || !overlay) return;
-
-  function openSidebar() {
-    sidebar.classList.add('open');
-    overlay.classList.add('visible');
-    document.body.style.overflow = 'hidden';
-  }
-  function closeSidebar() {
-    sidebar.classList.remove('open');
-    overlay.classList.remove('visible');
-    document.body.style.overflow = '';
-  }
-
-  btn.addEventListener('click', () =>
-    sidebar.classList.contains('open') ? closeSidebar() : openSidebar()
-  );
-  overlay.addEventListener('click', closeSidebar);
-  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeSidebar(); });
-
-  // Ekran büyüyünce sidebar'ı sıfırla
-  window.addEventListener('resize', () => {
-    if (window.innerWidth > 768) closeSidebar();
-  });
-})();
 </script>
 </body>
 </html>
