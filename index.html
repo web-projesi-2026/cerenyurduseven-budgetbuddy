@@ -31,7 +31,7 @@
     </div>
     <nav class="sidebar-nav">
       <span class="nav-section-title">Genel</span>
-      <a class="nav-link active" href="../index.html">
+      <a class="nav-link active" href="/cerenyurduseven-budgetbuddy/index.html">
         <i data-lucide="layout-dashboard"></i> Panel
       </a>
       <a class="nav-link" href="pages/project.html">
@@ -247,6 +247,92 @@ async function init() {
 
 init().catch(err => { Toast.error('Veriler yüklenirken hata oluştu'); console.error(err); });
 
+</script>
+
+<!-- Yapay Zeka Chat Butonu -->
+<button id="aiChatBtn" style="
+  position:fixed; bottom:24px; right:24px; z-index:999;
+  width:56px; height:56px; border-radius:50%;
+  background:linear-gradient(135deg,#22c55e,#10b981);
+  border:none; cursor:pointer; box-shadow:0 4px 24px rgba(34,197,94,.4);
+  display:flex; align-items:center; justify-content:center;
+  font-size:24px; transition:transform .2s ease;
+" title="AI Asistan" onclick="toggleAiChat()">🤖</button>
+
+<div id="aiChatBox" style="
+  display:none; position:fixed; bottom:92px; right:24px; z-index:998;
+  width:320px; max-height:440px; background:#111318;
+  border:1px solid rgba(255,255,255,.1); border-radius:16px;
+  box-shadow:0 8px 48px rgba(0,0,0,.6); flex-direction:column; overflow:hidden;
+">
+  <div style="padding:16px; border-bottom:1px solid rgba(255,255,255,.07); display:flex; justify-content:space-between; align-items:center;">
+    <span style="font-family:Syne,sans-serif; font-weight:700; color:#f0f2f8;">🤖 BudgetBuddy AI</span>
+    <button onclick="toggleAiChat()" style="background:none;border:none;color:#8891a8;cursor:pointer;font-size:18px;">✕</button>
+  </div>
+  <div id="aiMessages" style="flex:1; overflow-y:auto; padding:16px; display:flex; flex-direction:column; gap:10px; min-height:240px;">
+    <div style="background:#1e2330; padding:10px 14px; border-radius:10px; color:#f0f2f8; font-size:.875rem; max-width:85%;">
+      Merhaba! Bütçeniz hakkında sorularınızı sorabilirsiniz. 💰
+    </div>
+  </div>
+  <div style="padding:12px; border-top:1px solid rgba(255,255,255,.07); display:flex; gap:8px;">
+    <input id="aiInput" type="text" placeholder="Mesajınızı yazın..." 
+      style="flex:1; background:#1e2330; border:1px solid rgba(255,255,255,.1); border-radius:8px; 
+             padding:10px 12px; color:#f0f2f8; font-size:.875rem; outline:none;"
+      onkeydown="if(event.key==='Enter') sendAiMessage()" />
+    <button onclick="sendAiMessage()" style="
+      background:linear-gradient(135deg,#22c55e,#10b981); border:none; border-radius:8px;
+      width:40px; height:40px; cursor:pointer; font-size:18px; flex-shrink:0;
+    ">↑</button>
+  </div>
+</div>
+
+<script>
+function toggleAiChat() {
+  var box = document.getElementById('aiChatBox');
+  box.style.display = box.style.display === 'none' ? 'flex' : 'none';
+}
+
+async function sendAiMessage() {
+  var input = document.getElementById('aiInput');
+  var messages = document.getElementById('aiMessages');
+  var text = input.value.trim();
+  if (!text) return;
+  input.value = '';
+
+  // Kullanıcı mesajı
+  messages.innerHTML += '<div style="background:#22c55e22; padding:10px 14px; border-radius:10px; color:#f0f2f8; font-size:.875rem; max-width:85%; align-self:flex-end; margin-left:auto;">' + text + '</div>';
+  
+  // Yükleniyor
+  var loadingId = 'ai-loading-' + Date.now();
+  messages.innerHTML += '<div id="' + loadingId + '" style="background:#1e2330; padding:10px 14px; border-radius:10px; color:#8891a8; font-size:.875rem; max-width:85%;">⏳ Düşünüyor...</div>';
+  messages.scrollTop = messages.scrollHeight;
+
+  try {
+    // Kullanıcının bakiye bilgisini al
+    var ozet = await Reports.ozet();
+    var context = "Sen BudgetBuddy finansal asistanısın. Kullanıcının bakiyesi: " + 
+      formatPara(ozet.bakiye) + ", Bu ay gelir: " + formatPara(ozet.bu_ay.gelir) + 
+      ", Bu ay gider: " + formatPara(ozet.bu_ay.gider) + ". Kısa ve yardımcı ol. Türkçe cevap ver.";
+
+    var res = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-20250514",
+        max_tokens: 300,
+        system: context,
+        messages: [{ role: "user", content: text }]
+      })
+    });
+    var data = await res.json();
+    var reply = data.content?.[0]?.text || "Üzgünüm, cevap veremedim.";
+    
+    document.getElementById(loadingId).innerHTML = reply;
+  } catch(e) {
+    document.getElementById(loadingId).innerHTML = "Şu an bağlanamıyorum, lütfen tekrar deneyin.";
+  }
+  messages.scrollTop = messages.scrollHeight;
+}
 </script>
 </body>
 </html>
