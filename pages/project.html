@@ -29,7 +29,7 @@
     </div>
     <nav class="sidebar-nav">
       <span class="nav-section-title">Genel</span>
-      <a class="nav-link" href="../index.html"><i data-lucide="layout-dashboard"></i> Panel</a>
+      <a class="nav-link" href="/cerenyurduseven-budgetbuddy/index.html"><i data-lucide="layout-dashboard"></i> Panel</a>
       <a class="nav-link active" href="project.html"><i data-lucide="list"></i> İşlemler</a>
       <span class="nav-section-title">Hesap</span>
       <a class="nav-link" href="about.html"><i data-lucide="user"></i> Profilim</a>
@@ -351,6 +351,40 @@ document.getElementById('resetBtn').addEventListener('click', () => {
   await loadTransactions();
   lucide.createIcons();
 })();
+</script>
+
+<!-- AI Chat -->
+<button id="aiChatBtn" style="position:fixed;bottom:24px;right:24px;z-index:999;width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,#22c55e,#10b981);border:none;cursor:pointer;box-shadow:0 4px 24px rgba(34,197,94,.4);display:flex;align-items:center;justify-content:center;font-size:24px;" onclick="toggleAiChat()">🤖</button>
+<div id="aiChatBox" style="display:none;position:fixed;bottom:92px;right:24px;z-index:998;width:310px;max-height:420px;background:#111318;border:1px solid rgba(255,255,255,.1);border-radius:16px;box-shadow:0 8px 48px rgba(0,0,0,.6);flex-direction:column;overflow:hidden;">
+  <div style="padding:14px 16px;border-bottom:1px solid rgba(255,255,255,.07);display:flex;justify-content:space-between;align-items:center;">
+    <span style="font-family:Syne,sans-serif;font-weight:700;color:#f0f2f8;font-size:.95rem;">🤖 BudgetBuddy AI</span>
+    <button onclick="toggleAiChat()" style="background:none;border:none;color:#8891a8;cursor:pointer;font-size:18px;line-height:1;">✕</button>
+  </div>
+  <div id="aiMessages" style="flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px;min-height:220px;max-height:280px;">
+    <div style="background:#1e2330;padding:10px 14px;border-radius:10px;color:#f0f2f8;font-size:.85rem;max-width:85%;">Merhaba! Finansal sorularınızı sorabilirsiniz. 💰</div>
+  </div>
+  <div style="padding:10px;border-top:1px solid rgba(255,255,255,.07);display:flex;gap:8px;">
+    <input id="aiInput" type="text" placeholder="Soru sorun..." style="flex:1;background:#1e2330;border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:9px 12px;color:#f0f2f8;font-size:.85rem;outline:none;" onkeydown="if(event.key==='Enter')sendAiMsg()" />
+    <button onclick="sendAiMsg()" style="background:linear-gradient(135deg,#22c55e,#10b981);border:none;border-radius:8px;width:38px;height:38px;cursor:pointer;font-size:16px;flex-shrink:0;">↑</button>
+  </div>
+</div>
+<script>
+function toggleAiChat(){var b=document.getElementById("aiChatBox");b.style.display=b.style.display==="none"?"flex":"none";}
+async function sendAiMsg(){
+  var i=document.getElementById("aiInput"),m=document.getElementById("aiMessages"),t=i.value.trim();
+  if(!t)return;i.value="";
+  m.innerHTML+='<div style="background:#22c55e22;padding:9px 13px;border-radius:10px;color:#f0f2f8;font-size:.85rem;max-width:85%;align-self:flex-end;margin-left:auto;">'+t+'</div>';
+  var id="ai-"+Date.now();
+  m.innerHTML+='<div id="'+id+'" style="background:#1e2330;padding:9px 13px;border-radius:10px;color:#8891a8;font-size:.85rem;max-width:85%;">⏳ Düşünüyor...</div>';
+  m.scrollTop=m.scrollHeight;
+  try{
+    var r=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:300,system:"Sen BudgetBuddy finansal asistanissin. Kisa ve yardimci ol. Turkce cevap ver.",messages:[{role:"user",content:t}]})});
+    var d=await r.json();
+    document.getElementById(id).style.color="#f0f2f8";
+    document.getElementById(id).innerHTML=d.content&&d.content[0]?d.content[0].text:"Cevap veremedim.";
+  }catch(e){document.getElementById(id).innerHTML="Baglanti hatasi.";}
+  m.scrollTop=m.scrollHeight;
+}
 </script>
 </body>
 </html>
