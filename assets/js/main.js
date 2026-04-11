@@ -83,6 +83,9 @@ const Auth = {
     return { success: true };
   },
   async cikis() {
+    // Çıkış onay popup
+    const confirmed = await showLogoutConfirm();
+    if (!confirmed) return;
     DB.set('bb_session', null);
     window.location.href = '/cerenyurduseven-budgetbuddy/pages/giris.html';
   },
@@ -370,4 +373,123 @@ window.addEventListener('load', function () {
 document.addEventListener('DOMContentLoaded', () => {
   loadUserInfo();
   setActiveNav();
+});
+
+// ─── Çıkış Onay Popup ────────────────────────
+function showLogoutConfirm() {
+  return new Promise((resolve) => {
+    // Varsa eski popup kaldır
+    var old = document.getElementById('logoutPopup');
+    if (old) old.remove();
+
+    var popup = document.createElement('div');
+    popup.id = 'logoutPopup';
+    popup.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px);';
+    popup.innerHTML = `
+      <div style="background:#111318;border:1px solid rgba(255,255,255,.1);border-radius:20px;padding:32px;max-width:340px;width:100%;text-align:center;box-shadow:0 8px 48px rgba(0,0,0,.6);">
+        <div style="font-size:3rem;margin-bottom:12px;">👋</div>
+        <h3 style="font-family:Syne,sans-serif;font-size:1.2rem;color:#f0f2f8;margin-bottom:8px;">Çıkış yapmak istiyor musunuz?</h3>
+        <p style="color:#8891a8;font-size:.875rem;margin-bottom:24px;">Oturumunuz kapatılacak. Tekrar giriş yapabilirsiniz.</p>
+        <div style="display:flex;gap:12px;justify-content:center;">
+          <button id="logoutCancel" style="flex:1;padding:12px;border-radius:10px;background:#1e2330;border:1px solid rgba(255,255,255,.1);color:#8891a8;cursor:pointer;font-size:.9rem;font-family:inherit;">İptal</button>
+          <button id="logoutConfirm" style="flex:1;padding:12px;border-radius:10px;background:#ef4444;border:none;color:#fff;cursor:pointer;font-size:.9rem;font-weight:600;font-family:inherit;">Evet, Çık</button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(popup);
+
+    document.getElementById('logoutConfirm').onclick = () => { popup.remove(); resolve(true); };
+    document.getElementById('logoutCancel').onclick  = () => { popup.remove(); resolve(false); };
+    popup.addEventListener('click', (e) => { if (e.target === popup) { popup.remove(); resolve(false); } });
+  });
+}
+
+// ─── Buddy AI Chat ────────────────────────────
+function initBuddyAI() {
+  if (document.getElementById('buddyBtn')) return;
+
+  var btn = document.createElement('button');
+  btn.id = 'buddyBtn';
+  btn.innerHTML = '🤖';
+  btn.title = 'Buddy AI Asistan';
+  btn.style.cssText = 'position:fixed;bottom:24px;right:24px;z-index:999;width:58px;height:58px;border-radius:50%;background:linear-gradient(135deg,#22c55e,#10b981);border:none;cursor:pointer;box-shadow:0 4px 24px rgba(34,197,94,.5);font-size:26px;display:flex;align-items:center;justify-content:center;transition:transform .2s;';
+  btn.onmouseover = () => btn.style.transform = 'scale(1.1)';
+  btn.onmouseout  = () => btn.style.transform = 'scale(1)';
+
+  var box = document.createElement('div');
+  box.id = 'buddyBox';
+  box.style.cssText = 'display:none;position:fixed;bottom:96px;right:24px;z-index:998;width:320px;background:#111318;border:1px solid rgba(255,255,255,.12);border-radius:18px;box-shadow:0 8px 48px rgba(0,0,0,.7);flex-direction:column;overflow:hidden;';
+  box.innerHTML = `
+    <div style="padding:14px 16px;background:linear-gradient(135deg,rgba(34,197,94,.15),rgba(16,185,129,.1));border-bottom:1px solid rgba(255,255,255,.07);display:flex;align-items:center;gap:10px;">
+      <div style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#22c55e,#10b981);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;">🤖</div>
+      <div style="flex:1;">
+        <div style="font-family:Syne,sans-serif;font-weight:700;color:#f0f2f8;font-size:.95rem;">Buddy</div>
+        <div style="font-size:.72rem;color:#22c55e;">● Çevrimiçi</div>
+      </div>
+      <button onclick="document.getElementById('buddyBox').style.display='none'" style="background:none;border:none;color:#8891a8;cursor:pointer;font-size:18px;padding:4px;">✕</button>
+    </div>
+    <div id="buddyMessages" style="overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px;min-height:200px;max-height:260px;">
+      <div style="display:flex;gap:8px;align-items:flex-start;">
+        <div style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#22c55e,#10b981);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;">🤖</div>
+        <div style="background:#1e2330;padding:10px 13px;border-radius:0 12px 12px 12px;color:#f0f2f8;font-size:.85rem;max-width:80%;line-height:1.5;">
+          Merhaba! Ben <strong>Buddy</strong> 👋<br>Bütçeniz hakkında her şeyi sorabilirsiniz. Size yardımcı olmak için buradayım! 💰
+        </div>
+      </div>
+    </div>
+    <div style="padding:10px;border-top:1px solid rgba(255,255,255,.07);display:flex;gap:8px;">
+      <input id="buddyInput" type="text" placeholder="Buddy'ye sor..." style="flex:1;background:#1e2330;border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:9px 12px;color:#f0f2f8;font-size:.85rem;outline:none;" onkeydown="if(event.key==='Enter')buddySend()" />
+      <button onclick="buddySend()" style="background:linear-gradient(135deg,#22c55e,#10b981);border:none;border-radius:10px;width:38px;height:38px;cursor:pointer;font-size:18px;flex-shrink:0;display:flex;align-items:center;justify-content:center;">↑</button>
+    </div>
+  `;
+
+  document.body.appendChild(btn);
+  document.body.appendChild(box);
+
+  btn.addEventListener('click', function() {
+    box.style.display = box.style.display === 'none' ? 'flex' : 'none';
+    if (box.style.display === 'flex') {
+      document.getElementById('buddyInput').focus();
+    }
+  });
+}
+
+async function buddySend() {
+  var input = document.getElementById('buddyInput');
+  var messages = document.getElementById('buddyMessages');
+  var text = input.value.trim();
+  if (!text) return;
+  input.value = '';
+
+  // Kullanıcı mesajı
+  messages.innerHTML += '<div style="display:flex;justify-content:flex-end;"><div style="background:rgba(34,197,94,.15);border:1px solid rgba(34,197,94,.2);padding:9px 13px;border-radius:12px 0 12px 12px;color:#f0f2f8;font-size:.85rem;max-width:80%;">' + text + '</div></div>';
+
+  var id = 'bm-' + Date.now();
+  messages.innerHTML += '<div id="' + id + '" style="display:flex;gap:8px;align-items:flex-start;"><div style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#22c55e,#10b981);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;">🤖</div><div style="background:#1e2330;padding:10px 13px;border-radius:0 12px 12px 12px;color:#8891a8;font-size:.85rem;max-width:80%;">⏳ Düşünüyor...</div></div>';
+  messages.scrollTop = messages.scrollHeight;
+
+  try {
+    var systemMsg = "Sen BudgetBuddy'nin sevimli finansal asistanı Buddy'sin. Kısa, samimi ve yardımcı cevaplar ver. Emoji kullanabilirsin. Türkçe cevap ver.";
+    var r = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ model: "claude-sonnet-4-20250514", max_tokens: 300, system: systemMsg, messages: [{ role: "user", content: text }] })
+    });
+    var d = await r.json();
+    var reply = d.content && d.content[0] ? d.content[0].text : "Üzgünüm, şu an cevap veremiyorum.";
+    var el = document.getElementById(id);
+    if (el) el.querySelector('div:last-child').innerHTML = reply;
+    el.querySelector('div:last-child').style.color = '#f0f2f8';
+  } catch(e) {
+    var el = document.getElementById(id);
+    if (el) el.querySelector('div:last-child').textContent = 'Bağlantı hatası, tekrar deneyin.';
+  }
+  messages.scrollTop = messages.scrollHeight;
+}
+
+// Sayfa yüklenince Buddy'yi başlat
+document.addEventListener('DOMContentLoaded', function() {
+  // Auth sayfalarında Buddy gösterme
+  if (!document.querySelector('.auth-body')) {
+    initBuddyAI();
+  }
 });
