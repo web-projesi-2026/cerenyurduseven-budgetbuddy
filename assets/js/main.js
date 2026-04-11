@@ -410,9 +410,17 @@ function initBuddyAI() {
 
   var btn = document.createElement('button');
   btn.id = 'buddyBtn';
-  btn.innerHTML = '🤖';
-  btn.title = 'Buddy AI Asistan';
-  btn.style.cssText = 'position:fixed;bottom:24px;right:24px;z-index:999;width:58px;height:58px;border-radius:50%;background:linear-gradient(135deg,#22c55e,#10b981);border:none;cursor:pointer;box-shadow:0 4px 24px rgba(34,197,94,.5);font-size:26px;display:flex;align-items:center;justify-content:center;transition:transform .2s;';
+  btn.innerHTML = '<svg width="30" height="30" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="white" stroke-width="1.5" opacity="0.6"/><path d="M12 7v1m0 8v1M9.5 9.5C9.5 8.4 10.6 7.5 12 7.5s2.5.9 2.5 2c0 2.5-2.5 2-2.5 4m0 1h.01" stroke="white" stroke-width="2" stroke-linecap="round"/></svg>';
+  btn.title = 'Buddy - Finansal Asistan';
+  btn.setAttribute('id', 'buddyBtnEl');
+  btn.style.cssText = 'position:fixed;bottom:24px;right:24px;z-index:999;width:58px;height:58px;border-radius:50%;background:linear-gradient(135deg,#22c55e,#10b981);border:none;cursor:pointer;box-shadow:0 4px 24px rgba(34,197,94,.5);display:flex;align-items:center;justify-content:center;transition:all .3s;animation:buddyPulse 2s infinite;';
+  // Add pulse animation style
+  if (!document.getElementById('buddyStyle')) {
+    var s = document.createElement('style');
+    s.id = 'buddyStyle';
+    s.textContent = '@keyframes buddyPulse{0%,100%{box-shadow:0 4px 24px rgba(34,197,94,.5)}50%{box-shadow:0 4px 32px rgba(34,197,94,.9),0 0 0 8px rgba(34,197,94,.1)}}';
+    document.head.appendChild(s);
+  }
   btn.onmouseover = () => btn.style.transform = 'scale(1.1)';
   btn.onmouseout  = () => btn.style.transform = 'scale(1)';
 
@@ -421,7 +429,7 @@ function initBuddyAI() {
   box.style.cssText = 'display:none;position:fixed;bottom:96px;right:24px;z-index:998;width:320px;background:#111318;border:1px solid rgba(255,255,255,.12);border-radius:18px;box-shadow:0 8px 48px rgba(0,0,0,.7);flex-direction:column;overflow:hidden;';
   box.innerHTML = `
     <div style="padding:14px 16px;background:linear-gradient(135deg,rgba(34,197,94,.15),rgba(16,185,129,.1));border-bottom:1px solid rgba(255,255,255,.07);display:flex;align-items:center;gap:10px;">
-      <div style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#22c55e,#10b981);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;">🤖</div>
+      <div style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#22c55e,#10b981);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="white" stroke-width="1.5" opacity="0.6"/><path d="M12 7v1m0 8v1M9.5 9.5C9.5 8.4 10.6 7.5 12 7.5s2.5.9 2.5 2c0 2.5-2.5 2-2.5 4m0 1h.01" stroke="white" stroke-width="2" stroke-linecap="round"/></svg></div>
       <div style="flex:1;">
         <div style="font-family:Syne,sans-serif;font-weight:700;color:#f0f2f8;font-size:.95rem;">Buddy</div>
         <div style="font-size:.72rem;color:#22c55e;">● Çevrimiçi</div>
@@ -430,7 +438,7 @@ function initBuddyAI() {
     </div>
     <div id="buddyMessages" style="overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px;min-height:200px;max-height:260px;">
       <div style="display:flex;gap:8px;align-items:flex-start;">
-        <div style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#22c55e,#10b981);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;">🤖</div>
+        <div style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#22c55e,#10b981);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" stroke="white" stroke-width="2.5" stroke-linejoin="round"/><polyline points="9,22 9,12 15,12 15,22" stroke="white" stroke-width="2.5" stroke-linejoin="round"/></svg></div>
         <div style="background:#1e2330;padding:10px 13px;border-radius:0 12px 12px 12px;color:#f0f2f8;font-size:.85rem;max-width:80%;line-height:1.5;">
           Merhaba! Ben <strong>Buddy</strong> 👋<br>Bütçeniz hakkında her şeyi sorabilirsiniz. Size yardımcı olmak için buradayım! 💰
         </div>
@@ -464,7 +472,7 @@ async function buddySend() {
   messages.innerHTML += '<div style="display:flex;justify-content:flex-end;"><div style="background:rgba(34,197,94,.15);border:1px solid rgba(34,197,94,.2);padding:9px 13px;border-radius:12px 0 12px 12px;color:#f0f2f8;font-size:.85rem;max-width:80%;">' + text + '</div></div>';
 
   var id = 'bm-' + Date.now();
-  messages.innerHTML += '<div id="' + id + '" style="display:flex;gap:8px;align-items:flex-start;"><div style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#22c55e,#10b981);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;">🤖</div><div style="background:#1e2330;padding:10px 13px;border-radius:0 12px 12px 12px;color:#8891a8;font-size:.85rem;max-width:80%;">⏳ Düşünüyor...</div></div>';
+  messages.innerHTML += '<div id="' + id + '" style="display:flex;gap:8px;align-items:flex-start;"><div style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#22c55e,#10b981);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" stroke="white" stroke-width="2.5" stroke-linejoin="round"/><polyline points="9,22 9,12 15,12 15,22" stroke="white" stroke-width="2.5" stroke-linejoin="round"/></svg></div><div style="background:#1e2330;padding:10px 13px;border-radius:0 12px 12px 12px;color:#8891a8;font-size:.85rem;max-width:80%;">⏳ Düşünüyor...</div></div>';
   messages.scrollTop = messages.scrollHeight;
 
   try {
