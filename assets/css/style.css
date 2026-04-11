@@ -727,3 +727,55 @@ body.sidebar-open .mobile-menu-btn .bar:nth-child(3) {
 .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
 .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; }
 
+
+/* ─── Mobil Ek Düzeltmeler ──────────────────── */
+@media (max-width: 768px) {
+  /* Sayfa taşmasını engelle */
+  html, body {
+    overflow-x: hidden !important;
+    max-width: 100vw !important;
+  }
+
+  /* Grafikler mobilde küçülsün */
+  canvas {
+    max-height: 180px !important;
+  }
+
+  /* Grid 2 kolon yerine tek kolon */
+  .grid-2, .grid-3 {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+
+  /* Stat grid 2 kolon */
+  .stats-grid {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 10px !important;
+  }
+
+  /* Card padding küçülsün */
+  .card {
+    padding: 14px 12px !important;
+  }
+
+  /* Tablo kaydırma */
+  .table-wrapper {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+
+  /* AI chat mobilde küçük */
+  #aiChatBox {
+    width: calc(100vw - 32px) !important;
+    right: 16px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .stats-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .main-content {
+    padding: 60px 12px 20px !important;
+  }
+}
