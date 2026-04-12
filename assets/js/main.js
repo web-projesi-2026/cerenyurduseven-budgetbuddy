@@ -297,13 +297,17 @@ async function loadUserInfo() {
     if (nameEl)  nameEl.textContent  = `${u.ad} ${u.soyad}`;
     if (emailEl) emailEl.textContent = u.email;
     if (initEl) {
-      // Profil resmi varsa göster
-      const savedPhoto = localStorage.getItem('bb_avatar_' + u.id);
+      // Profil resmi: önce localStorage, sonra session'daki URL
+      const savedPhoto = localStorage.getItem('bb_avatar_' + u.id) || u.avatar_url;
       if (savedPhoto) {
         initEl.style.backgroundImage = `url(${savedPhoto})`;
         initEl.style.backgroundSize = 'cover';
         initEl.style.backgroundPosition = 'center';
         initEl.textContent = '';
+        // Diğer cihazlarda da çalışsın diye localStorage'a kaydet
+        if (u.avatar_url && !localStorage.getItem('bb_avatar_' + u.id)) {
+          localStorage.setItem('bb_avatar_' + u.id, u.avatar_url);
+        }
       } else {
         initEl.textContent = (u.ad[0] + u.soyad[0]).toUpperCase();
       }
