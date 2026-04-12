@@ -296,7 +296,18 @@ async function loadUserInfo() {
     const initEl  = document.getElementById('userInitials');
     if (nameEl)  nameEl.textContent  = `${u.ad} ${u.soyad}`;
     if (emailEl) emailEl.textContent = u.email;
-    if (initEl)  initEl.textContent  = (u.ad[0] + u.soyad[0]).toUpperCase();
+    if (initEl) {
+      // Profil resmi varsa göster
+      const savedPhoto = localStorage.getItem('bb_avatar_' + u.id);
+      if (savedPhoto) {
+        initEl.style.backgroundImage = `url(${savedPhoto})`;
+        initEl.style.backgroundSize = 'cover';
+        initEl.style.backgroundPosition = 'center';
+        initEl.textContent = '';
+      } else {
+        initEl.textContent = (u.ad[0] + u.soyad[0]).toUpperCase();
+      }
+    }
     document.getElementById('logoutBtn')?.addEventListener('click', () => Auth.cikis());
   } catch {}
 }
