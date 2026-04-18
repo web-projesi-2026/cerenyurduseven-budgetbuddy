@@ -779,3 +779,99 @@ body.sidebar-open .mobile-menu-btn .bar:nth-child(3) {
     padding: 60px 12px 20px !important;
   }
 }
+
+/* ─── LIGHT MODE ─────────────────────────────── */
+[data-theme="light"] {
+  --bg-1: #f8fafc;
+  --bg-2: #ffffff;
+  --bg-3: #f1f5f9;
+  --border: #e2e8f0;
+  --text-1: #0f172a;
+  --text-2: #334155;
+  --text-3: #64748b;
+}
+[data-theme="light"] .sidebar {
+  background: #ffffff;
+  border-right: 1px solid #e2e8f0;
+}
+[data-theme="light"] .card {
+  background: #ffffff;
+  box-shadow: 0 1px 4px rgba(0,0,0,.08);
+}
+
+/* ─── TABS ───────────────────────────────────── */
+.tab-group { width: 100%; }
+.tab-buttons {
+  display: flex;
+  gap: 4px;
+  background: var(--bg-2);
+  border-radius: 10px;
+  padding: 4px;
+  margin-bottom: 16px;
+  border: 1px solid var(--border);
+}
+.tab-btn {
+  flex: 1;
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: none;
+  background: none;
+  color: var(--text-3);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: .875rem;
+  font-weight: 500;
+  transition: all .2s;
+}
+.tab-btn.active {
+  background: var(--green);
+  color: #fff;
+  font-weight: 600;
+}
+.tab-panel { display: none; }
+
+/* ─── SLİDER ─────────────────────────────────── */
+.slider-wrap {
+  position: relative;
+  overflow: hidden;
+  border-radius: 12px;
+}
+.slide {
+  display: none;
+  animation: fadeSlide .4s ease;
+}
+.slide.active { display: block; }
+@keyframes fadeSlide {
+  from { opacity: 0; transform: translateX(20px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+.slide-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 12px;
+}
+.slide-prev, .slide-next {
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  color: var(--text-1);
+  cursor: pointer;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all .2s;
+}
+.slide-prev:hover, .slide-next:hover { background: var(--green); color: #fff; border-color: var(--green); }
+.slide-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--border);
+  cursor: pointer;
+  transition: all .2s;
+  border: none;
+}
+.slide-dot.active { background: var(--green); width: 20px; border-radius: 4px; }
