@@ -516,3 +516,137 @@ document.addEventListener('DOMContentLoaded', function() {
     initBuddyAI();
   }
 });
+
+// ─── 1. DARK / LIGHT MODE TOGGLE ─────────────
+function initDarkMode() {
+  const saved = localStorage.getItem('bb_theme') || 'dark';
+  document.documentElement.setAttribute('data-theme', saved);
+  
+  // Buton oluştur
+  if (document.getElementById('themeToggle')) return;
+  const btn = document.createElement('button');
+  btn.id = 'themeToggle';
+  btn.style.cssText = 'position:fixed;top:14px;right:72px;z-index:998;width:40px;height:40px;border-radius:50%;background:var(--bg-2);border:1px solid var(--border);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;transition:all .3s;';
+  btn.innerHTML = saved === 'dark' ? '☀️' : '🌙';
+  btn.title = 'Tema değiştir';
+  document.body.appendChild(btn);
+
+  btn.addEventListener('click', () => {
+    const current = document.documentElement.getAttribute('data-theme');
+    const next = current === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', next);
+    localStorage.setItem('bb_theme', next);
+    btn.innerHTML = next === 'dark' ? '☀️' : '🌙';
+  });
+}
+
+// ─── 2. YUKARI ÇIK BUTONU ────────────────────
+function initScrollToTop() {
+  if (document.getElementById('scrollTopBtn')) return;
+  const btn = document.createElement('button');
+  btn.id = 'scrollTopBtn';
+  btn.innerHTML = '↑';
+  btn.style.cssText = 'position:fixed;bottom:96px;right:24px;z-index:997;width:44px;height:44px;border-radius:50%;background:var(--bg-3);border:1px solid var(--border);color:var(--text-1);cursor:pointer;font-size:20px;font-weight:700;display:none;align-items:center;justify-content:center;transition:all .3s;box-shadow:0 4px 12px rgba(0,0,0,.3);';
+  document.body.appendChild(btn);
+
+  window.addEventListener('scroll', () => {
+    btn.style.display = window.scrollY > 300 ? 'flex' : 'none';
+  });
+  btn.addEventListener('click', () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+}
+
+// ─── 3. SAYAÇ ANİMASYONU ─────────────────────
+function animateCounters() {
+  const counters = document.querySelectorAll('[data-counter]');
+  counters.forEach(el => {
+    const target = parseFloat(el.getAttribute('data-counter'));
+    const duration = 1500;
+    const start = performance.now();
+    const startVal = 0;
+
+    function update(now) {
+      const elapsed = now - start;
+      const progress = Math.min(elapsed / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      const current = startVal + (target - startVal) * eased;
+      el.textContent = new Intl.NumberFormat('tr-TR', {
+        style: 'currency', currency: 'TRY', minimumFractionDigits: 2
+      }).format(current);
+      if (progress < 1) requestAnimationFrame(update);
+    }
+    requestAnimationFrame(update);
+  });
+}
+
+// ─── 4. SEKMELİ İÇERİK (TABS) ───────────────
+function initTabs() {
+  document.querySelectorAll('.tab-group').forEach(group => {
+    const tabs    = group.querySelectorAll('.tab-btn');
+    const panels  = group.querySelectorAll('.tab-panel');
+
+    tabs.forEach((tab, i) => {
+      tab.addEventListener('click', () => {
+        tabs.forEach(t => t.classList.remove('active'));
+        panels.forEach(p => { p.style.display = 'none'; });
+        tab.classList.add('active');
+        if (panels[i]) panels[i].style.display = 'block';
+      });
+    });
+
+    // İlk sekmeyi aktif yap
+    if (tabs[0]) tabs[0].click();
+  });
+}
+
+// ─── 5. SLİDER ───────────────────────────────
+function initSlider() {
+  document.querySelectorAll('.slider-wrap').forEach(wrap => {
+    const slides = wrap.querySelectorAll('.slide');
+    if (!slides.length) return;
+    let current = 0;
+
+    // Prev/Next butonları
+    const prev = wrap.querySelector('.slide-prev');
+    const next = wrap.querySelector('.slide-next');
+    const dots = wrap.querySelectorAll('.slide-dot');
+
+    function goTo(n) {
+      slides[current].classList.remove('active');
+      if (dots[current]) dots[current].classList.remove('active');
+      current = (n + slides.length) % slides.length;
+      slides[current].classList.add('active');
+      if (dots[current]) dots[current].classList.add('active');
+    }
+
+    if (prev) prev.addEventListener('click', () => goTo(current - 1));
+    if (next) next.addEventListener('click', () => goTo(current + 1));
+    dots.forEach((dot, i) => dot.addEventListener('click', () => goTo(i)));
+
+    // İlk slide aktif
+    slides[0].classList.add('active');
+    if (dots[0]) dots[0].classList.add('active');
+
+    // Otomatik geçiş
+    setInterval(() => goTo(current + 1), 4000);
+  });
+}
+
+// ─── Tüm etkileşimleri başlat ────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  if (!document.querySelector('.auth-body')) {
+    initDarkMode();
+    initScrollToTop();
+    initTabs();
+    initSlider();
+    // Sayaç animasyonunu observer ile tetikle
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (e.isIntersecting) { animateCounters(); observer.disconnect(); }
+      });
+    });
+    const firstCounter = document.querySelector('[data-counter]');
+    if (firstCounter) observer.observe(firstCounter);
+  }
+});
