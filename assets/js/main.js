@@ -522,21 +522,34 @@ function initDarkMode() {
   const saved = localStorage.getItem('bb_theme') || 'dark';
   document.documentElement.setAttribute('data-theme', saved);
   
-  // Buton oluştur
+  // Butonu sidebar footer'a ekle
   if (document.getElementById('themeToggle')) return;
+  const sidebarFooter = document.querySelector('.sidebar-footer');
+  if (!sidebarFooter) return;
+
+  const themeRow = document.createElement('div');
+  themeRow.style.cssText = 'display:flex;align-items:center;justify-content:space-between;padding:10px 0 0;border-top:1px solid var(--border);margin-top:8px;';
+  themeRow.innerHTML = '<span style="font-size:.8rem;color:var(--text-3);">Tema</span>';
+
   const btn = document.createElement('button');
   btn.id = 'themeToggle';
-  btn.style.cssText = 'position:fixed;top:14px;right:72px;z-index:998;width:40px;height:40px;border-radius:50%;background:var(--bg-2);border:1px solid var(--border);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;transition:all .3s;';
-  btn.innerHTML = saved === 'dark' ? '☀️' : '🌙';
+  btn.style.cssText = 'width:52px;height:26px;border-radius:13px;background:var(--bg-3);border:1px solid var(--border);cursor:pointer;display:flex;align-items:center;padding:2px;transition:all .3s;position:relative;';
   btn.title = 'Tema değiştir';
-  document.body.appendChild(btn);
+  
+  const knob = document.createElement('div');
+  knob.style.cssText = `width:20px;height:20px;border-radius:50%;background:var(--green);transition:transform .3s;transform:${saved === 'light' ? 'translateX(26px)' : 'translateX(0)'};display:flex;align-items:center;justify-content:center;font-size:12px;`;
+  knob.textContent = saved === 'dark' ? '🌙' : '☀️';
+  btn.appendChild(knob);
+  themeRow.appendChild(btn);
+  sidebarFooter.appendChild(themeRow);
 
   btn.addEventListener('click', () => {
     const current = document.documentElement.getAttribute('data-theme');
     const next = current === 'dark' ? 'light' : 'dark';
     document.documentElement.setAttribute('data-theme', next);
     localStorage.setItem('bb_theme', next);
-    btn.innerHTML = next === 'dark' ? '☀️' : '🌙';
+    knob.textContent = next === 'dark' ? '🌙' : '☀️';
+    knob.style.transform = next === 'light' ? 'translateX(26px)' : 'translateX(0)';
   });
 }
 
