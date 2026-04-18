@@ -40,6 +40,10 @@
       <a class="nav-link" href="pages/project.html">
         <i data-lucide="list"></i> İşlemler
       </a>
+      <a class="nav-link" href="pages/about.html" style="position:relative;">
+        <i data-lucide="bar-chart-2"></i> Raporlar
+        <span style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:var(--green);color:#fff;font-size:.65rem;padding:2px 7px;border-radius:99px;font-weight:700;">YENİ</span>
+      </a>
       <span class="nav-section-title">Hesap</span>
       <a class="nav-link" href="pages/about.html">
         <i data-lucide="user"></i> Profilim
@@ -47,6 +51,10 @@
       <a class="nav-link" href="pages/contact.html">
         <i data-lucide="mail"></i> Destek
       </a>
+      <span class="nav-section-title">Hızlı İşlem</span>
+      <button class="nav-link" style="width:100%;text-align:left;background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.2);color:var(--green);font-weight:600;" onclick="Modal.open('yeniIslemModal')">
+        <i data-lucide="plus-circle"></i> Yeni İşlem Ekle
+      </button>
     </nav>
     <div class="sidebar-footer">
       <div class="user-card" id="logoutBtn" title="Çıkış yap">
@@ -264,16 +272,32 @@ async function init() {
     const tbody = document.getElementById('sonIslemler');
     if (!islemler.length) {
       tbody.innerHTML = '<tr><td colspan="5"><div class="empty-state"><div class="empty-icon">📭</div><p>Henüz işlem yok</p></div></td></tr>';
-    } else {
-      tbody.innerHTML = islemler.slice(0,10).map(t => `
-        <tr>
-          <td>${formatTarih(t.tarih, {day:'2-digit',month:'short'})}</td>
-          <td>${t.aciklama || '—'}</td>
-          <td><span class="cat-dot" style="--dot-color:${t.renk}">${t.kategori}</span></td>
-          <td><span class="badge badge-${t.tur}">${t.tur === 'gelir' ? '↑ Gelir' : '↓ Gider'}</span></td>
-          <td class="text-right"><span class="amount-${t.tur}">${t.tur === 'gelir' ? '+' : '-'}${formatPara(t.miktar)}</span></td>
-        </tr>
-      `).join('');
+      const toplamEl = document.getElementById('islemToplam');
+      if (toplamEl) toplamEl.style.display = 'none';
+      return;
+    }
+    const slice = islemler.slice(0,10);
+    tbody.innerHTML = slice.map(t => `
+      <tr>
+        <td>${formatTarih(t.tarih, {day:'2-digit',month:'short'})}</td>
+        <td>${t.aciklama || '—'}</td>
+        <td><span class="cat-dot" style="--dot-color:${t.renk}">${t.kategori}</span></td>
+        <td><span class="badge badge-${t.tur}">${t.tur === 'gelir' ? '↑ Gelir' : '↓ Gider'}</span></td>
+        <td class="text-right"><span class="amount-${t.tur}">${t.tur === 'gelir' ? '+' : '-'}${formatPara(t.miktar)}</span></td>
+      </tr>
+    `).join('');
+
+    // Dinamik toplam - animasyonlu
+    const gelir = slice.filter(t=>t.tur==='gelir').reduce((s,t)=>s+Number(t.miktar),0);
+    const gider = slice.filter(t=>t.tur==='gider').reduce((s,t)=>s+Number(t.miktar),0);
+    const net   = gelir - gider;
+    const toplamEl = document.getElementById('islemToplam');
+    if (toplamEl) {
+      toplamEl.style.display = 'flex';
+      toplamEl.innerHTML = `
+        <td colspan="3" style="font-weight:700;font-size:.85rem;">Görünen Toplam (${slice.length} işlem)</td>
+        <td></td>
+        <td class="text-right" style="font-weight:800;color:${net>=0?'var(--green)':'var(--red)'};">${net>=0?'+':''}${formatPara(net)}</td>`;
     }
   }
 
@@ -335,23 +359,34 @@ async function init() {
     }
   });
 
-  // Tasarruf hedefleri - Slider
+  // Tasarruf hedefleri - Slider + Animasyonlu Progress Bar
   if (tasarruf.hedefler.length) {
     document.getElementById('tasarrufCard').style.display = 'block';
     const dotsEl = document.getElementById('sliderDots');
-    document.getElementById('tasarrufList').innerHTML = tasarruf.hedefler.map((h, i) => `
-      <div class="slide">
-      <div>
-        <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px;">
-          <span style="font-weight:600;">${h.baslik}</span>
-          <span style="font-size:.8rem;color:var(--text-3);">${formatPara(h.mevcut_miktar)} / ${formatPara(h.hedef_miktar)}</span>
-        </div>
-        <div class="progress-bar">
-          <div class="progress-fill" style="width:${Math.min(h.yuzde,100)}%;background:var(--purple);"></div>
-        </div>
-        <div style="font-size:.75rem;color:var(--text-3);margin-top:4px;">${h.yuzde}% tamamlandı · Bitiş: ${formatTarih(h.bitis_tarihi)}</div>
-      </div>
-    `).join('');
+
+    document.getElementById('tasarrufList').innerHTML = tasarruf.hedefler.map((h, i) => {
+      // Renk: %0-40 kırmızı, %40-75 sarı, %75-100 yeşil
+      const renk = h.yuzde < 40 ? '#ef4444' : h.yuzde < 75 ? '#f59e0b' : '#22c55e';
+      const emoji = h.yuzde < 40 ? '🔴' : h.yuzde < 75 ? '🟡' : '🟢';
+      return `
+        <div class="slide">
+          <div style="padding:8px 0;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+              <span style="font-weight:700;font-size:1rem;">${h.baslik}</span>
+              <span style="font-size:.85rem;font-weight:600;color:${renk};">${emoji} %${h.yuzde}</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:.8rem;color:var(--text-3);margin-bottom:8px;">
+              <span>Mevcut: <strong style="color:var(--text-1);">${formatPara(h.mevcut_miktar)}</strong></span>
+              <span>Hedef: <strong style="color:var(--text-1);">${formatPara(h.hedef_miktar)}</strong></span>
+            </div>
+            <div style="background:var(--bg-3);border-radius:99px;height:12px;overflow:hidden;margin-bottom:8px;">
+              <div class="progress-anim" data-target="${Math.min(h.yuzde,100)}" data-color="${renk}"
+                style="height:100%;width:0%;border-radius:99px;background:${renk};transition:width 1.5s cubic-bezier(.4,0,.2,1);"></div>
+            </div>
+            <div style="font-size:.75rem;color:var(--text-3);">⏰ Bitiş: ${formatTarih(h.bitis_tarihi)}</div>
+          </div>
+        </div>`;
+    }).join('');
 
     // Slider dot'larını oluştur
     tasarruf.hedefler.forEach((_, i) => {
@@ -363,12 +398,52 @@ async function init() {
 
     // Slider'ı başlat
     initSlider();
+
+    // Progress bar animasyonu - 0'dan hedefe doğru dolar
+    setTimeout(() => {
+      document.querySelectorAll('.progress-anim').forEach(bar => {
+        bar.style.width = bar.getAttribute('data-target') + '%';
+      });
+    }, 300);
   }
+
+
 
   lucide.createIcons();
 }
 
 init().catch(err => { Toast.error('Veriler yüklenirken hata oluştu'); console.error(err); });
+
+// ── Streak Sayacı ────────────────────────────
+(function() {
+  try {
+    const session = DB.get('bb_session');
+    if (!session?.user) return;
+    const key = 'bb_streak_' + session.user.id;
+    const today = new Date().toISOString().split('T')[0];
+    let streak = DB.get(key) || { count: 1, lastDate: today };
+    
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    const yStr = yesterday.toISOString().split('T')[0];
+    
+    if (streak.lastDate === yStr) {
+      streak.count += 1;
+      streak.lastDate = today;
+      DB.set(key, streak);
+    } else if (streak.lastDate !== today) {
+      streak = { count: 1, lastDate: today };
+      DB.set(key, streak);
+    }
+
+    const welcomeMsg = document.getElementById('welcomeMsg');
+    if (welcomeMsg) {
+      if (streak.count >= 2) {
+        welcomeMsg.textContent = '🔥 ' + streak.count + ' gündür bütçeni takip ediyorsun! Harika gidiyorsun!';
+      }
+    }
+  } catch(e) {}
+})();
 
 // ── Yeni İşlem Modal JS ──────────────────────
 document.addEventListener('DOMContentLoaded', async () => {
