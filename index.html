@@ -68,9 +68,9 @@
         <p class="page-subtitle" id="dateStr"></p>
         <p id="welcomeMsg" style="font-size:.9rem;color:var(--green);margin-top:4px;font-weight:500;display:none;"></p>
       </div>
-      <a href="pages/project.html" class="btn btn-primary">
+      <button class="btn btn-primary" onclick="Modal.open('yeniIslemModal')">
         <i data-lucide="plus"></i> Yeni İşlem
-      </a>
+      </button>
     </div>
 
     <!-- Özet Kartlar -->
@@ -150,6 +150,46 @@
       </div>
     </div>
   </main>
+</div>
+
+<!-- Yeni İşlem Modal -->
+<div class="modal-overlay" id="yeniIslemModal">
+  <div class="modal-box" style="max-width:480px;width:95vw;">
+    <div class="modal-header">
+      <span class="modal-title">➕ Yeni İşlem Ekle</span>
+      <button class="modal-close" data-close-modal="yeniIslemModal">✕</button>
+    </div>
+    <form id="yeniIslemForm" style="display:flex;flex-direction:column;gap:14px;margin-top:8px;">
+      <div class="form-group">
+        <label class="form-label">İşlem Türü</label>
+        <select class="form-control" id="yiTur">
+          <option value="gelir">💰 Gelir</option>
+          <option value="gider">💸 Gider</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Miktar (₺)</label>
+        <input class="form-control" type="number" id="yiMiktar" placeholder="0.00" min="0" step="0.01" required />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Açıklama</label>
+        <input class="form-control" type="text" id="yiAciklama" placeholder="İşlem açıklaması..." required />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Kategori</label>
+        <select class="form-control" id="yiKategori"></select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Tarih</label>
+        <input class="form-control" type="date" id="yiTarih" required />
+      </div>
+      <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:4px;">
+        <button type="button" class="btn btn-secondary" data-close-modal="yeniIslemModal">İptal</button>
+        <button type="submit" class="btn btn-primary">💾 Kaydet</button>
+      </div>
+      <div id="yiMsg" style="font-size:.85rem;text-align:center;display:none;"></div>
+    </form>
+  </div>
 </div>
 
 <div id="toast-container"></div>
@@ -329,6 +369,60 @@ async function init() {
 }
 
 init().catch(err => { Toast.error('Veriler yüklenirken hata oluştu'); console.error(err); });
+
+// ── Yeni İşlem Modal JS ──────────────────────
+document.addEventListener('DOMContentLoaded', async () => {
+  // Bugünün tarihini otomatik seç
+  document.getElementById('yiTarih').value = new Date().toISOString().split('T')[0];
+
+  // Kategorileri yükle
+  const turEl = document.getElementById('yiTur');
+  const katEl = document.getElementById('yiKategori');
+
+  async function loadKats() {
+    const data = await Categories.list();
+    const filtered = data.categories.filter(c => c.tur === turEl.value);
+    katEl.innerHTML = filtered.map(c =>
+      `<option value="${c.id}">${c.ad}</option>`
+    ).join('');
+  }
+
+  turEl.addEventListener('change', loadKats);
+  await loadKats();
+
+  // Form gönder
+  document.getElementById('yeniIslemForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const msg = document.getElementById('yiMsg');
+    const miktar = parseFloat(document.getElementById('yiMiktar').value);
+    if (!miktar || miktar <= 0) {
+      msg.textContent = 'Geçerli bir miktar girin.';
+      msg.style.color = 'var(--red)';
+      msg.style.display = 'block';
+      return;
+    }
+    try {
+      await Transactions.create({
+        tur: turEl.value,
+        miktar,
+        aciklama: document.getElementById('yiAciklama').value,
+        kategori_id: katEl.value,
+        tarih: document.getElementById('yiTarih').value,
+      });
+      Toast.success('İşlem eklendi!');
+      Modal.close('yeniIslemModal');
+      document.getElementById('yeniIslemForm').reset();
+      document.getElementById('yiTarih').value = new Date().toISOString().split('T')[0];
+      await loadKats();
+      // Sayfayı yenile
+      setTimeout(() => location.reload(), 500);
+    } catch(err) {
+      msg.textContent = err.message;
+      msg.style.color = 'var(--red)';
+      msg.style.display = 'block';
+    }
+  });
+});
 
 </script>
 
