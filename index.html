@@ -137,10 +137,17 @@
       </div>
     </div>
 
-    <!-- Tasarruf Hedefleri -->
+    <!-- Tasarruf Hedefleri Slider -->
     <div class="card mt-24" id="tasarrufCard" style="display:none;">
-      <div class="card-title">Tasarruf Hedefleri</div>
-      <div id="tasarrufList" style="display:flex;flex-direction:column;gap:16px;"></div>
+      <div class="card-title">🎯 Tasarruf Hedefleri</div>
+      <div class="slider-wrap" id="tasarrufSlider">
+        <div id="tasarrufList"></div>
+        <div class="slide-controls">
+          <button class="slide-prev">‹</button>
+          <div id="sliderDots" style="display:flex;gap:6px;"></div>
+          <button class="slide-next">›</button>
+        </div>
+      </div>
     </div>
   </main>
 </div>
@@ -288,10 +295,12 @@ async function init() {
     }
   });
 
-  // Tasarruf hedefleri
+  // Tasarruf hedefleri - Slider
   if (tasarruf.hedefler.length) {
     document.getElementById('tasarrufCard').style.display = 'block';
-    document.getElementById('tasarrufList').innerHTML = tasarruf.hedefler.map(h => `
+    const dotsEl = document.getElementById('sliderDots');
+    document.getElementById('tasarrufList').innerHTML = tasarruf.hedefler.map((h, i) => `
+      <div class="slide">
       <div>
         <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px;">
           <span style="font-weight:600;">${h.baslik}</span>
@@ -303,6 +312,17 @@ async function init() {
         <div style="font-size:.75rem;color:var(--text-3);margin-top:4px;">${h.yuzde}% tamamlandı · Bitiş: ${formatTarih(h.bitis_tarihi)}</div>
       </div>
     `).join('');
+
+    // Slider dot'larını oluştur
+    tasarruf.hedefler.forEach((_, i) => {
+      const dot = document.createElement('button');
+      dot.className = 'slide-dot';
+      dot.setAttribute('data-index', i);
+      dotsEl.appendChild(dot);
+    });
+
+    // Slider'ı başlat
+    initSlider();
   }
 
   lucide.createIcons();
