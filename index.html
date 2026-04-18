@@ -189,28 +189,61 @@ async function init() {
   ]);
 
   // Stat kartlar
-  document.getElementById('statBakiye').textContent = formatPara(ozet.bakiye);
-  document.getElementById('statGelir').textContent  = formatPara(ozet.bu_ay.gelir);
-  document.getElementById('statGider').textContent  = formatPara(ozet.bu_ay.gider);
-  document.getElementById('statNet').textContent    = formatPara(ozet.bu_ay.bakiye);
+  // Sayaç animasyonu ile değerleri göster
+  function animateValue(el, target) {
+    el.setAttribute('data-counter', target);
+    const duration = 1200;
+    const start = performance.now();
+    function update(now) {
+      const progress = Math.min((now - start) / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      el.textContent = formatPara(target * eased);
+      if (progress < 1) requestAnimationFrame(update);
+    }
+    requestAnimationFrame(update);
+  }
+  animateValue(document.getElementById('statBakiye'), ozet.bakiye);
+  animateValue(document.getElementById('statGelir'),  ozet.bu_ay.gelir);
+  animateValue(document.getElementById('statGider'),  ozet.bu_ay.gider);
+  animateValue(document.getElementById('statNet'),    ozet.bu_ay.bakiye);
   document.getElementById('statGelirSub').textContent = `Toplam: ${formatPara(ozet.toplam_gelir)}`;
   document.getElementById('statGiderSub').textContent = `Toplam: ${formatPara(ozet.toplam_gider)}`;
 
-  // Son işlemler
-  const tbody = document.getElementById('sonIslemler');
-  if (!ozet.son_islemler.length) {
-    tbody.innerHTML = '<tr><td colspan="5"><div class="empty-state"><div class="empty-icon">📭</div><p>Henüz işlem yok</p></div></td></tr>';
-  } else {
-    tbody.innerHTML = ozet.son_islemler.map(t => `
-      <tr>
-        <td>${formatTarih(t.tarih, {day:'2-digit',month:'short'})}</td>
-        <td>${t.aciklama || '—'}</td>
-        <td><span class="cat-dot" style="--dot-color:${t.renk}">${t.kategori}</span></td>
-        <td><span class="badge badge-${t.tur}">${t.tur === 'gelir' ? '↑ Gelir' : '↓ Gider'}</span></td>
-        <td class="text-right"><span class="amount-${t.tur}">${t.tur === 'gelir' ? '+' : '-'}${formatPara(t.miktar)}</span></td>
-      </tr>
-    `).join('');
+  // Son işlemler - tab filtreleme ile
+  const txAll = await Transactions.list();
+  let tumIslemler = txAll.transactions;
+
+  function renderTablo(islemler) {
+    const tbody = document.getElementById('sonIslemler');
+    if (!islemler.length) {
+      tbody.innerHTML = '<tr><td colspan="5"><div class="empty-state"><div class="empty-icon">📭</div><p>Henüz işlem yok</p></div></td></tr>';
+    } else {
+      tbody.innerHTML = islemler.slice(0,10).map(t => `
+        <tr>
+          <td>${formatTarih(t.tarih, {day:'2-digit',month:'short'})}</td>
+          <td>${t.aciklama || '—'}</td>
+          <td><span class="cat-dot" style="--dot-color:${t.renk}">${t.kategori}</span></td>
+          <td><span class="badge badge-${t.tur}">${t.tur === 'gelir' ? '↑ Gelir' : '↓ Gider'}</span></td>
+          <td class="text-right"><span class="amount-${t.tur}">${t.tur === 'gelir' ? '+' : '-'}${formatPara(t.miktar)}</span></td>
+        </tr>
+      `).join('');
+    }
   }
+
+  renderTablo(tumIslemler);
+
+  // Tab butonları
+  document.querySelectorAll('.tab-btn[data-tab]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.tab-btn[data-tab]').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const tab = btn.getAttribute('data-tab');
+      renderTablo(tab === 'hepsi' ? tumIslemler : tumIslemler.filter(t => t.tur === tab));
+    });
+  });
+  // İlk tab aktif
+  const firstTab = document.querySelector('.tab-btn[data-tab="hepsi"]');
+  if (firstTab) firstTab.classList.add('active');
 
   // Aylık Grafik
   const ctx1 = document.getElementById('aylikChart').getContext('2d');
