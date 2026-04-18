@@ -476,6 +476,57 @@ function initBuddyAI() {
   });
 }
 
+function buddySmartReply(text) {
+  const t = text.toLowerCase();
+  
+  // Oturumdaki verileri al
+  const session = JSON.parse(localStorage.getItem('bb_session') || 'null');
+  const userId = session?.user?.id;
+  const txKey = 'bb_transactions_' + userId;
+  const txList = JSON.parse(localStorage.getItem(txKey) || '[]');
+  const gelir = txList.filter(t=>t.tur==='gelir').reduce((s,t)=>s+Number(t.miktar),0);
+  const gider = txList.filter(t=>t.tur==='gider').reduce((s,t)=>s+Number(t.miktar),0);
+  const bakiye = gelir - gider;
+
+  // Kelime bazlı akıllı cevaplar
+  if (t.includes('bakiye') || t.includes('ne kadar') || t.includes('param')) {
+    return `💰 Toplam bakiyeniz <strong>${new Intl.NumberFormat('tr-TR',{style:'currency',currency:'TRY'}).format(bakiye)}</strong>. ${bakiye > 0 ? 'Harika gidiyorsunuz! 🎉' : 'Dikkatli olun, giderler gelirleri geçmiş. ⚠️'}`;
+  }
+  if (t.includes('gider') || t.includes('harcama') || t.includes('masraf')) {
+    return `📊 Toplam gideriniz <strong>${new Intl.NumberFormat('tr-TR',{style:'currency',currency:'TRY'}).format(gider)}</strong>. En büyük gider kategorinizi "İşlemler" sayfasından görebilirsiniz.`;
+  }
+  if (t.includes('gelir') || t.includes('kazanç') || t.includes('maaş')) {
+    return `💚 Toplam geliriniz <strong>${new Intl.NumberFormat('tr-TR',{style:'currency',currency:'TRY'}).format(gelir)}</strong>. Düzenli gelir takibi finansal sağlığınız için çok önemli! 👍`;
+  }
+  if (t.includes('tasarruf') || t.includes('biriktir') || t.includes('hedef')) {
+    return `🎯 Tasarruf için gelirinizin en az %20'sini biriktirmeyi hedefleyin. Şu an bakiyeniz ${new Intl.NumberFormat('tr-TR',{style:'currency',currency:'TRY'}).format(bakiye)}. Tasarruf hedeflerinizi "Panel" sayfasından takip edebilirsiniz!`;
+  }
+  if (t.includes('nasıl') && (t.includes('kaydet') || t.includes('ekle'))) {
+    return `➕ Yeni işlem eklemek için sayfanın üstündeki <strong>"+ Yeni İşlem"</strong> butonuna tıklayın. Gelir veya gider türünü, miktarı ve kategoriyi seçin!`;
+  }
+  if (t.includes('merhaba') || t.includes('selam') || t.includes('hey') || t.includes('hi')) {
+    return `👋 Merhaba! Ben Buddy, finansal asistanınızım. Bakiye, gelir, gider veya tasarruf hakkında sorularınızı sorabilirsiniz! 💰`;
+  }
+  if (t.includes('teşekkür') || t.includes('sağ ol') || t.includes('eyw')) {
+    return `😊 Rica ederim! Başka bir sorunuz olursa buradayım. İyi günler! 🌟`;
+  }
+  if (t.includes('rapor') || t.includes('pdf') || t.includes('indir')) {
+    return `📄 Raporlarınızı <strong>Profilim</strong> sayfasından PDF veya CSV olarak indirebilirsiniz!`;
+  }
+  if (t.includes('şifre') || t.includes('parola')) {
+    return `🔒 Şifrenizi <strong>Profilim</strong> sayfasından değiştirebilirsiniz. Güvenliğiniz için düzenli olarak değiştirmenizi öneririm!`;
+  }
+  
+  // Varsayılan cevaplar
+  const varsayilan = [
+    '💡 Finansal sağlık için gelirinizin %50'sini ihtiyaçlara, %30'unu isteklere, %20'sini tasarrufa ayırmanızı öneririm (50/30/20 kuralı).',
+    '📈 Düzenli bütçe takibi, gereksiz harcamaları %30 azaltabilir. Harika iş çıkarıyorsunuz! 💪',
+    '🎯 Kısa vadeli bir tasarruf hedefi belirlemek, uzun vadeli finansal özgürlüğe giden ilk adımdır!',
+    '💰 Küçük harcamalar büyük fark yaratır. Günlük kahve yerine evde yapılan, aylık tasarrufa dönüşür!'
+  ];
+  return varsayilan[Math.floor(Math.random() * varsayilan.length)];
+}
+
 async function buddySend() {
   var input = document.getElementById('buddyInput');
   var messages = document.getElementById('buddyMessages');
@@ -491,20 +542,17 @@ async function buddySend() {
   messages.scrollTop = messages.scrollHeight;
 
   try {
-    var systemMsg = "Sen BudgetBuddy'nin sevimli finansal asistanı Buddy'sin. Kısa, samimi ve yardımcı cevaplar ver. Emoji kullanabilirsin. Türkçe cevap ver.";
-    var r = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ model: "claude-sonnet-4-20250514", max_tokens: 300, system: systemMsg, messages: [{ role: "user", content: text }] })
-    });
-    var d = await r.json();
-    var reply = d.content && d.content[0] ? d.content[0].text : "Üzgünüm, şu an cevap veremiyorum.";
+    // Akıllı yerel cevaplar - API gerektirmez
+    var reply = buddySmartReply(text);
+    await new Promise(r => setTimeout(r, 800)); // gerçekçi gecikme
     var el = document.getElementById(id);
-    if (el) el.querySelector('div:last-child').innerHTML = reply;
-    el.querySelector('div:last-child').style.color = '#f0f2f8';
+    if (el) {
+      el.querySelector('div:last-child').innerHTML = reply;
+      el.querySelector('div:last-child').style.color = '#f0f2f8';
+    }
   } catch(e) {
     var el = document.getElementById(id);
-    if (el) el.querySelector('div:last-child').textContent = 'Bağlantı hatası, tekrar deneyin.';
+    if (el) el.querySelector('div:last-child').textContent = 'Bir hata oluştu.';
   }
   messages.scrollTop = messages.scrollHeight;
 }
