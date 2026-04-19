@@ -231,6 +231,58 @@
 </div>
 
 <div id="toast-container"></div>
+<script>
+// ── Inline DB ve Auth (main.js yüklenmeden önce) ──
+const DB = {
+  get(key, def = null) {
+    try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : def; } catch { return def; }
+  },
+  set(key, val) {
+    try { localStorage.setItem(key, JSON.stringify(val)); } catch {}
+  },
+};
+
+const Auth = {
+  async giris(email, sifre) {
+    const users = DB.get('bb_users', []);
+    const user = users.find(u => u.email === email && u.sifre === sifre);
+    if (!user) throw new Error('E-posta veya şifre hatalı.');
+    DB.set('bb_session', { user: { id: user.id, ad: user.ad, soyad: user.soyad, email: user.email } });
+    return { success: true };
+  },
+  async ben() {
+    const session = DB.get('bb_session');
+    if (!session?.user) throw new Error('Oturum yok');
+    return session;
+  },
+};
+
+const Toast = {
+  show(msg, type = 'info', duration = 3500) {
+    let container = document.getElementById('toast-container');
+    if (!container) { container = document.createElement('div'); container.id = 'toast-container'; document.body.appendChild(container); }
+    const t = document.createElement('div');
+    t.className = `toast ${type}`;
+    const icon = { success: '✓', error: '✕', info: 'ℹ' }[type] || 'ℹ';
+    t.innerHTML = `<span>${icon}</span><span>${msg}</span>`;
+    container.appendChild(t);
+    setTimeout(() => { t.style.opacity = '0'; t.style.transition = '.3s'; setTimeout(() => t.remove(), 300); }, duration);
+  },
+  success: (m) => Toast.show(m, 'success'),
+  error: (m) => Toast.show(m, 'error'),
+};
+
+// Demo verileri yükle
+function loadDemoData() {
+  const demoUser = { id: 'demo_user', ad: 'Demo', soyad: 'Kullanıcı', email: 'demo@budgetbuddy.com', sifre: 'demo123' };
+  const users = DB.get('bb_users', []);
+  if (!users.find(u => u.email === demoUser.email)) {
+    users.push(demoUser);
+    DB.set('bb_users', users);
+  }
+}
+loadDemoData();
+</script>
 <script src="/cerenyurduseven-budgetbuddy/assets/js/main.js?v=15"></script>
 <script>
 // Yönlendirme
