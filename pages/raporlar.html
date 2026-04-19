@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Raporlar – BudgetBuddy</title>
+  <link rel="stylesheet" href="/cerenyurduseven-budgetbuddy/assets/css/style.css?v=15" />
+</head>
+<body>
+<button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Menüyü aç/kapat">
+  <div class="bars"><span class="bar"></span><span class="bar"></span><span class="bar"></span></div>
+</button>
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+<div class="app-layout">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo"><div class="logo-icon">💰</div><span>BudgetBuddy</span></div>
+    <nav class="sidebar-nav">
+      <span class="nav-section-title">Genel</span>
+      <a class="nav-link" href="/cerenyurduseven-budgetbuddy/index.html"><i data-lucide="layout-dashboard"></i> Panel</a>
+      <a class="nav-link" href="project.html"><i data-lucide="list"></i> İşlemler</a>
+      <a class="nav-link active" href="raporlar.html" style="position:relative;">
+        <i data-lucide="bar-chart-2"></i> Raporlar
+        <span style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:var(--green);color:#fff;font-size:.65rem;padding:2px 7px;border-radius:99px;font-weight:700;">YENİ</span>
+      </a>
+      <span class="nav-section-title">Hesap</span>
+      <a class="nav-link" href="about.html"><i data-lucide="user"></i> Profilim</a>
+      <a class="nav-link" href="contact.html"><i data-lucide="mail"></i> Destek</a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="user-card" id="logoutBtn">
+        <div class="user-avatar" id="userInitials">--</div>
+        <div class="user-info">
+          <div class="user-name" id="userName">Yükleniyor...</div>
+          <div class="user-email" id="userEmail"></div>
+        </div>
+        <i data-lucide="log-out" style="opacity:.4;flex-shrink:0;"></i>
+      </div>
+    </div>
+  </aside>
+
+  <main class="main-content">
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">📊 Raporlar</h1>
+        <p class="page-subtitle">Finansal verilerinizi analiz edin ve dışa aktarın</p>
+      </div>
+    </div>
+
+    <!-- Özet Kartlar -->
+    <div class="stats-grid" style="margin-bottom:24px;">
+      <div class="stat-card" style="border-top:3px solid var(--blue);">
+        <div class="stat-label">TOPLAM BAKİYE</div>
+        <div class="stat-value" id="rBakiye" style="color:var(--blue);">—</div>
+      </div>
+      <div class="stat-card" style="border-top:3px solid var(--green);">
+        <div class="stat-label">TOPLAM GELİR</div>
+        <div class="stat-value" id="rGelir" style="color:var(--green);">—</div>
+      </div>
+      <div class="stat-card" style="border-top:3px solid var(--red);">
+        <div class="stat-label">TOPLAM GİDER</div>
+        <div class="stat-value" id="rGider" style="color:var(--red);">—</div>
+      </div>
+    </div>
+
+    <!-- Aylık Tablo -->
+    <div class="card" style="margin-bottom:24px;">
+      <div class="card-title">📅 Aylık Özet</div>
+      <div class="table-wrapper">
+        <table style="width:100%;border-collapse:collapse;">
+          <thead>
+            <tr style="border-bottom:2px solid var(--border);">
+              <th style="padding:10px;text-align:left;color:var(--text-3);font-size:.8rem;font-weight:600;">AY</th>
+              <th style="padding:10px;text-align:right;color:var(--text-3);font-size:.8rem;font-weight:600;">GELİR</th>
+              <th style="padding:10px;text-align:right;color:var(--text-3);font-size:.8rem;font-weight:600;">GİDER</th>
+              <th style="padding:10px;text-align:right;color:var(--text-3);font-size:.8rem;font-weight:600;">NET</th>
+            </tr>
+          </thead>
+          <tbody id="aylikTablo"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Son İşlemler -->
+    <div class="card" style="margin-bottom:24px;">
+      <div class="card-title">📋 Tüm İşlemler</div>
+      <div class="table-wrapper">
+        <table style="width:100%;border-collapse:collapse;">
+          <thead>
+            <tr style="border-bottom:2px solid var(--border);">
+              <th style="padding:10px;text-align:left;color:var(--text-3);font-size:.8rem;">TARİH</th>
+              <th style="padding:10px;text-align:left;color:var(--text-3);font-size:.8rem;">AÇIKLAMA</th>
+              <th style="padding:10px;text-align:left;color:var(--text-3);font-size:.8rem;">KATEGORİ</th>
+              <th style="padding:10px;text-align:right;color:var(--text-3);font-size:.8rem;">MİKTAR</th>
+            </tr>
+          </thead>
+          <tbody id="islemlerTablo"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- İndir Butonları -->
+    <div class="card">
+      <div class="card-title">⬇️ Dışa Aktar</div>
+      <p style="color:var(--text-3);font-size:.85rem;margin-bottom:16px;">Finansal verilerinizi indirin</p>
+      <div style="display:flex;gap:12px;flex-wrap:wrap;">
+        <button class="btn btn-primary" onclick="downloadPDF()">
+          📄 PDF Rapor İndir
+        </button>
+        <button class="btn btn-secondary" onclick="downloadCSV()">
+          📊 Excel/CSV İndir
+        </button>
+        <button class="btn btn-secondary" onclick="window.print()">
+          🖨️ Yazdır
+        </button>
+      </div>
+    </div>
+  </main>
+</div>
+
+<div id="toast-container"></div>
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+<script src="/cerenyurduseven-budgetbuddy/assets/js/main.js?v=15"></script>
+<script>
+(async () => {
+  try { await Auth.ben(); } catch { window.location.href = '/cerenyurduseven-budgetbuddy/pages/giris.html'; return; }
+
+  const [ozet, aylik, txData] = await Promise.all([Reports.ozet(), Reports.aylik(), Transactions.list()]);
+
+  // Özet kartlar - animasyonlu
+  function animateValue(el, target) {
+    const duration = 1200;
+    const start = performance.now();
+    function update(now) {
+      const progress = Math.min((now - start) / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      el.textContent = formatPara(target * eased);
+      if (progress < 1) requestAnimationFrame(update);
+    }
+    requestAnimationFrame(update);
+  }
+  animateValue(document.getElementById('rBakiye'), ozet.bakiye);
+  animateValue(document.getElementById('rGelir'),  ozet.toplam_gelir);
+  animateValue(document.getElementById('rGider'),  ozet.toplam_gider);
+
+  // Aylık tablo
+  document.getElementById('aylikTablo').innerHTML = aylik.aylik.map(a => {
+    const net = a.gelir - a.gider;
+    return `<tr style="border-bottom:1px solid var(--border);">
+      <td style="padding:10px;">${a.etiket}</td>
+      <td style="padding:10px;text-align:right;color:var(--green);font-weight:600;">+${formatPara(a.gelir)}</td>
+      <td style="padding:10px;text-align:right;color:var(--red);font-weight:600;">-${formatPara(a.gider)}</td>
+      <td style="padding:10px;text-align:right;font-weight:700;color:${net>=0?'var(--green)':'var(--red)'};">${net>=0?'+':''}${formatPara(net)}</td>
+    </tr>`;
+  }).join('');
+
+  // İşlemler tablosu
+  document.getElementById('islemlerTablo').innerHTML = txData.transactions.map(t => `
+    <tr style="border-bottom:1px solid var(--border);">
+      <td style="padding:10px;font-size:.85rem;">${formatTarih(t.tarih,{day:'2-digit',month:'short'})}</td>
+      <td style="padding:10px;font-size:.85rem;">${t.aciklama||'—'}</td>
+      <td style="padding:10px;font-size:.85rem;"><span style="display:inline-flex;align-items:center;gap:6px;"><span style="width:8px;height:8px;border-radius:50%;background:${t.renk};display:inline-block;"></span>${t.kategori}</span></td>
+      <td style="padding:10px;text-align:right;font-weight:600;font-size:.85rem;color:${t.tur==='gelir'?'var(--green)':'var(--red)'};">${t.tur==='gelir'?'+':'-'}${formatPara(t.miktar)}</td>
+    </tr>`).join('');
+
+  lucide.createIcons();
+})();
+
+async function downloadCSV() {
+  const txData = await Transactions.list();
+  const rows = [['Tarih','Açıklama','Kategori','Tür','Miktar']];
+  txData.transactions.forEach(t => rows.push([t.tarih, t.aciklama, t.kategori, t.tur, t.miktar]));
+  const csv = rows.map(r => r.join(',')).join('\n');
+  const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = 'budgetbuddy-rapor.csv'; a.click();
+  URL.revokeObjectURL(url);
+  Toast.success('CSV indirildi!');
+}
+
+async function downloadPDF() {
+  const [ozet, aylik, txData] = await Promise.all([Reports.ozet(), Reports.aylik(), Transactions.list()]);
+  const session = DB.get('bb_session');
+  const ad = session?.user?.ad + ' ' + session?.user?.soyad;
+  const tarih = new Date().toLocaleDateString('tr-TR');
+  
+  const win = window.open('', '_blank');
+  win.document.write(`<!DOCTYPE html><html><head><title>BudgetBuddy Rapor</title>
+  <style>body{font-family:sans-serif;padding:24px;color:#1e2330;}h1{color:#22c55e;}table{width:100%;border-collapse:collapse;margin-top:12px;}td,th{padding:8px;border-bottom:1px solid #e5e7eb;text-align:left;}th{background:#f9fafb;font-size:.8rem;}.green{color:#22c55e;}.red{color:#ef4444;}</style>
+  </head><body>
+  <div style="display:flex;justify-content:space-between;border-bottom:3px solid #22c55e;padding-bottom:12px;margin-bottom:20px;">
+    <div><h1>💰 BudgetBuddy</h1><p style="color:#6b7280;">Kişisel Finans Raporu</p></div>
+    <div style="text-align:right;color:#6b7280;font-size:.85rem;"><div>${ad}</div><div>${tarih}</div></div>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:24px;">
+    <div style="background:#f0fdf4;border-radius:8px;padding:12px;text-align:center;"><div style="font-size:.7rem;color:#6b7280;">BAKİYE</div><div style="font-size:1.2rem;font-weight:800;color:#22c55e;">${formatPara(ozet.bakiye)}</div></div>
+    <div style="background:#f0fdf4;border-radius:8px;padding:12px;text-align:center;"><div style="font-size:.7rem;color:#6b7280;">GELİR</div><div style="font-size:1.2rem;font-weight:800;color:#16a34a;">${formatPara(ozet.toplam_gelir)}</div></div>
+    <div style="background:#fef2f2;border-radius:8px;padding:12px;text-align:center;"><div style="font-size:.7rem;color:#6b7280;">GİDER</div><div style="font-size:1.2rem;font-weight:800;color:#ef4444;">${formatPara(ozet.toplam_gider)}</div></div>
+  </div>
+  <h3>Aylık Özet</h3>
+  <table><thead><tr><th>Ay</th><th>Gelir</th><th>Gider</th><th>Net</th></tr></thead><tbody>
+  ${aylik.aylik.map(a=>`<tr><td>${a.etiket}</td><td class="green">${formatPara(a.gelir)}</td><td class="red">${formatPara(a.gider)}</td><td style="font-weight:700;color:${a.gelir-a.gider>=0?'#22c55e':'#ef4444'}">${formatPara(a.gelir-a.gider)}</td></tr>`).join('')}
+  </tbody></table>
+  <h3 style="margin-top:20px;">İşlemler</h3>
+  <table><thead><tr><th>Tarih</th><th>Açıklama</th><th>Kategori</th><th>Miktar</th></tr></thead><tbody>
+  ${txData.transactions.map(t=>`<tr><td>${t.tarih}</td><td>${t.aciklama||'—'}</td><td>${t.kategori}</td><td style="font-weight:600;color:${t.tur==='gelir'?'#22c55e':'#ef4444'}">${t.tur==='gelir'?'+':'-'}${formatPara(t.miktar)}</td></tr>`).join('')}
+  </tbody></table>
+  </body></html>`);
+  win.document.close();
+  setTimeout(() => win.print(), 500);
+}
+</script>
+</body>
+</html>
