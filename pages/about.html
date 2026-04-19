@@ -208,7 +208,7 @@
         </div>
 
         <!-- Rapor İndir -->
-        <div class="card report-card">
+        <div class="card report-card" id="raporlar">
           <div class="card-title">📊 Raporlar</div>
           <p style="color:var(--text-3);font-size:.85rem;margin-bottom:16px;">Finansal verilerinizi dışa aktarın</p>
           <button class="report-btn" onclick="downloadPDF()">
@@ -470,6 +470,12 @@ async function printReport() {
   win.document.write(`<!DOCTYPE html><html><head><title>BudgetBuddy Rapor</title><style>body{font-family:sans-serif;padding:20px;}table{width:100%;border-collapse:collapse;}td,th{padding:8px;border-bottom:1px solid #e5e7eb;}</style></head><body>${html}</body></html>`);
   win.document.close();
   win.print();
+}
+// Hash ile gelindiyse raporlara kaydır
+if (window.location.hash === '#raporlar') {
+  setTimeout(() => {
+    document.getElementById('raporlar')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, 500);
 }
 </script>
 </body>
