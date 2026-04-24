@@ -8,9 +8,83 @@
   <meta http-equiv="Expires" content="0" />
   <title>Destek – BudgetBuddy</title>
   <link rel="stylesheet" href="/cerenyurduseven-budgetbuddy/assets/css/style.css?v=15" />
+  <style>
+    .form-control.is-invalid {
+      border-color: var(--red) !important;
+      box-shadow: 0 0 0 3px rgba(239,68,68,.15);
+    }
+    .form-control.is-valid {
+      border-color: var(--green) !important;
+    }
+    .field-error {
+      font-size: .78rem;
+      color: var(--red);
+      margin-top: 5px;
+      display: none;
+    }
+    .field-error.show { display: block; }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+    @media (max-width: 600px) {
+      .form-row { grid-template-columns: 1fr; }
+    }
+
+    .phone-wrap { display: flex; }
+    .phone-prefix {
+      background: rgba(255,255,255,.05);
+      border: 1px solid var(--border);
+      border-right: none;
+      border-radius: 8px 0 0 8px;
+      padding: 9px 12px;
+      font-size: .85rem;
+      color: var(--text-2);
+      white-space: nowrap;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .phone-wrap .form-control { border-radius: 0 8px 8px 0; }
+
+    .char-count { font-size: .72rem; color: var(--text-2); text-align: right; margin-top: 4px; }
+    .char-count.warn { color: #facc15; }
+    .char-count.over { color: var(--red); }
+
+    .success-state {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      padding: 32px 16px;
+      gap: 12px;
+    }
+    .success-state.show { display: flex; }
+    .success-icon-big {
+      font-size: 3rem;
+      animation: popIn .4s cubic-bezier(.34,1.56,.64,1) both;
+    }
+    @keyframes popIn {
+      from { transform: scale(.3); opacity: 0; }
+      to   { transform: scale(1);  opacity: 1; }
+    }
+    .success-state h3 { font-size: 1.15rem; font-weight: 700; color: var(--green); margin: 0; }
+    .success-state p  { font-size: .85rem; color: var(--text-2); line-height: 1.6; margin: 0; }
+    .success-ref {
+      font-size: .75rem;
+      font-family: monospace;
+      background: rgba(34,197,94,.1);
+      border: 1px solid rgba(34,197,94,.2);
+      border-radius: 8px;
+      padding: 8px 16px;
+      color: var(--green);
+    }
+  </style>
 </head>
 <body>
-<!-- Hamburger Menü Butonu -->
+
 <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Menüyü aç/kapat">
   <div class="bars">
     <span class="bar"></span>
@@ -19,7 +93,6 @@
   </div>
 </button>
 
-<!-- Sidebar Overlay -->
 <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
 <div class="app-layout">
@@ -58,12 +131,55 @@
     </div>
 
     <div class="grid-2">
-      <!-- İletişim Formu -->
+
+      <!-- ── Form Kartı ── -->
       <div class="card">
         <div class="card-title">Mesaj Gönder</div>
+
         <form id="contactForm" style="display:flex;flex-direction:column;gap:16px;" novalidate>
+
+          <!-- Ad & Soyad -->
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Ad <span style="color:var(--red)">*</span></label>
+              <input type="text" class="form-control" id="cAd" placeholder="Adınız"
+                oninput="liveValidate(this,'ad')" onblur="liveValidate(this,'ad')" maxlength="50" />
+              <div class="field-error" id="err-ad">Ad alanı zorunludur (en az 2 karakter).</div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Soyad <span style="color:var(--red)">*</span></label>
+              <input type="text" class="form-control" id="cSoyad" placeholder="Soyadınız"
+                oninput="liveValidate(this,'soyad')" onblur="liveValidate(this,'soyad')" maxlength="50" />
+              <div class="field-error" id="err-soyad">Soyad alanı zorunludur (en az 2 karakter).</div>
+            </div>
+          </div>
+
+          <!-- E-posta -->
           <div class="form-group">
-            <label class="form-label">Konu</label>
+            <label class="form-label">E-posta <span style="color:var(--red)">*</span></label>
+            <input type="email" class="form-control" id="cEmail" placeholder="ornek@eposta.com"
+              oninput="liveValidate(this,'email')" onblur="liveValidate(this,'email')" maxlength="100" />
+            <div class="field-error" id="err-email">Geçerli bir e-posta adresi giriniz.</div>
+          </div>
+
+          <!-- Telefon -->
+          <div class="form-group">
+            <label class="form-label">
+              Telefon
+              <span style="font-size:.72rem;font-weight:400;color:var(--text-2);">— isteğe bağlı</span>
+            </label>
+            <div class="phone-wrap">
+              <div class="phone-prefix">🇹🇷 +90</div>
+              <input type="tel" class="form-control" id="cTelefon"
+                placeholder="555 123 45 67" maxlength="13"
+                oninput="formatTelefon(this)" />
+            </div>
+            <div class="field-error" id="err-telefon">Geçerli bir telefon numarası giriniz (10 hane).</div>
+          </div>
+
+          <!-- Konu -->
+          <div class="form-group">
+            <label class="form-label">Konu <span style="color:var(--red)">*</span></label>
             <select class="form-control" id="cKonu">
               <option value="Teknik Sorun">🔧 Teknik Sorun</option>
               <option value="Öneri">💡 Öneri</option>
@@ -72,18 +188,40 @@
               <option value="Diğer">📬 Diğer</option>
             </select>
           </div>
+
+          <!-- Mesaj -->
           <div class="form-group">
-            <label class="form-label">Mesajın</label>
-            <textarea class="form-control" id="cMesaj" rows="6" placeholder="Sorununuzu veya önerinizi detaylıca açıklayın..." required style="resize:vertical;"></textarea>
+            <label class="form-label">Mesajınız <span style="color:var(--red)">*</span></label>
+            <textarea class="form-control" id="cMesaj" rows="6"
+              placeholder="Sorununuzu veya önerinizi detaylıca açıklayın..."
+              oninput="updateCharCount(this); liveValidate(this,'mesaj')"
+              onblur="liveValidate(this,'mesaj')"
+              maxlength="1000" style="resize:vertical;"></textarea>
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-top:4px;">
+              <div class="field-error" id="err-mesaj" style="margin-top:0;">Mesaj en az 10 karakter olmalıdır.</div>
+              <div class="char-count" id="charCount" style="margin-left:auto;">0 / 1000</div>
+            </div>
           </div>
+
           <button type="submit" class="btn btn-primary" id="contactBtn">
             <i data-lucide="send"></i> Gönder
           </button>
           <div id="contactMsg" style="font-size:.85rem;text-align:center;display:none;"></div>
         </form>
+
+        <!-- Başarı -->
+        <div class="success-state" id="successState">
+          <div class="success-icon-big">🎉</div>
+          <h3>Mesajınız İletildi!</h3>
+          <p>Ekibimiz en kısa sürede e-posta ile geri dönecektir.<br/>Ortalama yanıt süresi <strong>24 saattir</strong>.</p>
+          <div class="success-ref" id="successRef">Referans: #BB-000000</div>
+          <button class="btn btn-primary" onclick="resetForm()" style="margin-top:4px;">
+            <i data-lucide="plus"></i> Yeni Mesaj Gönder
+          </button>
+        </div>
       </div>
 
-      <!-- SSS -->
+      <!-- ── SSS & Bilgi ── -->
       <div style="display:flex;flex-direction:column;gap:16px;">
         <div class="card">
           <div class="card-title">Sık Sorulan Sorular</div>
@@ -133,6 +271,7 @@
           </div>
         </div>
       </div>
+
     </div>
   </main>
 </div>
@@ -140,39 +279,134 @@
 <div id="toast-container"></div>
 <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
 <script src="/cerenyurduseven-budgetbuddy/assets/js/main.js?v=15"></script>
+
 <script>
+/* AUTH */
 (async () => {
   try { await Auth.ben(); } catch { window.location.href = '/pages/giris.html'; return; }
   lucide.createIcons();
 })();
 
+/* TELEFON FORMAT */
+function formatTelefon(el) {
+  let v = el.value.replace(/\D/g, '').replace(/^0/, '');
+  if (v.length > 3 && v.length <= 6)      v = v.slice(0,3) + ' ' + v.slice(3);
+  else if (v.length > 6 && v.length <= 8) v = v.slice(0,3) + ' ' + v.slice(3,6) + ' ' + v.slice(6);
+  else if (v.length > 8)                  v = v.slice(0,3) + ' ' + v.slice(3,6) + ' ' + v.slice(6,8) + ' ' + v.slice(8,10);
+  el.value = v;
+  const digits = el.value.replace(/\D/g, '');
+  if (digits.length > 0 && digits.length < 10) setInvalid(el, 'telefon');
+  else clearValidation(el, 'telefon');
+}
+
+/* KARAKTER SAYACI */
+function updateCharCount(el) {
+  const len = el.value.length;
+  const cc  = document.getElementById('charCount');
+  cc.textContent = len + ' / 1000';
+  cc.className   = 'char-count' + (len > 900 ? ' warn' : '') + (len >= 1000 ? ' over' : '');
+}
+
+/* VALIDATION */
+const rules = {
+  ad:    v => v.trim().length >= 2,
+  soyad: v => v.trim().length >= 2,
+  email: v => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim()),
+  mesaj: v => v.trim().length >= 10,
+};
+
+function setInvalid(el, field) {
+  el.classList.add('is-invalid'); el.classList.remove('is-valid');
+  const e = document.getElementById('err-' + field);
+  if (e) e.classList.add('show');
+}
+function setValid(el, field) {
+  el.classList.remove('is-invalid'); el.classList.add('is-valid');
+  const e = document.getElementById('err-' + field);
+  if (e) e.classList.remove('show');
+}
+function clearValidation(el, field) {
+  el.classList.remove('is-invalid', 'is-valid');
+  const e = document.getElementById('err-' + field);
+  if (e) e.classList.remove('show');
+}
+function liveValidate(el, field) {
+  if (!el.value.length) { clearValidation(el, field); return; }
+  rules[field](el.value) ? setValid(el, field) : setInvalid(el, field);
+}
+
+/* SUBMIT */
 document.getElementById('contactForm').addEventListener('submit', async (e) => {
   e.preventDefault();
-  const btn = document.getElementById('contactBtn');
-  const msg = document.getElementById('contactMsg');
-  const konu  = document.getElementById('cKonu').value;
-  const mesaj = document.getElementById('cMesaj').value.trim();
-  if (!mesaj || mesaj.length < 10) {
-    msg.textContent = 'Lütfen en az 10 karakter mesaj yazın.'; msg.style.color='var(--red)'; msg.style.display='block'; return;
+
+  const fields = {
+    ad:    document.getElementById('cAd'),
+    soyad: document.getElementById('cSoyad'),
+    email: document.getElementById('cEmail'),
+    mesaj: document.getElementById('cMesaj'),
+  };
+  const telEl = document.getElementById('cTelefon');
+
+  let gecerli = true;
+  for (const [field, el] of Object.entries(fields)) {
+    rules[field](el.value) ? setValid(el, field) : (setInvalid(el, field), gecerli = false);
   }
-  btn.disabled = true;
+  const telDigits = telEl.value.replace(/\D/g, '');
+  if (telDigits.length > 0 && telDigits.length < 10) {
+    setInvalid(telEl, 'telefon'); gecerli = false;
+  }
+
+  const msg = document.getElementById('contactMsg');
+  if (!gecerli) {
+    msg.textContent = 'Lütfen kırmızı işaretli alanları düzeltin.';
+    msg.style.color = 'var(--red)'; msg.style.display = 'block';
+    return;
+  }
+
+  const btn  = document.getElementById('contactBtn');
+  btn.disabled  = true;
   btn.innerHTML = '<div class="spinner" style="margin:0 auto;"></div>';
   msg.style.display = 'none';
+
   try {
-    await api.post('/contact', { konu, mesaj });
-    msg.textContent = '✓ Mesajınız iletildi. En kısa sürede geri döneceğiz.';
-    msg.style.color = 'var(--green)'; msg.style.display = 'block';
-    document.getElementById('contactForm').reset();
+    await api.post('/contact', {
+      ad:      fields.ad.value.trim(),
+      soyad:   fields.soyad.value.trim(),
+      email:   fields.email.value.trim(),
+      telefon: telEl.value.trim() || null,
+      konu:    document.getElementById('cKonu').value,
+      mesaj:   fields.mesaj.value.trim(),
+    });
+
+    const ref = '#BB-' + Math.floor(100000 + Math.random() * 900000);
+    document.getElementById('successRef').textContent = 'Referans: ' + ref;
+    document.getElementById('contactForm').style.display = 'none';
+    document.getElementById('successState').classList.add('show');
+    lucide.createIcons();
     Toast.success('Mesaj gönderildi!');
-  } catch(err) {
+
+  } catch (err) {
     msg.textContent = err.message || 'Gönderim sırasında bir hata oluştu.';
     msg.style.color = 'var(--red)'; msg.style.display = 'block';
   } finally {
-    btn.disabled = false;
+    btn.disabled  = false;
     btn.innerHTML = '<i data-lucide="send"></i> Gönder';
     lucide.createIcons();
   }
 });
+
+/* RESET */
+function resetForm() {
+  document.getElementById('contactForm').reset();
+  document.getElementById('charCount').textContent = '0 / 1000';
+  document.querySelectorAll('#contactForm .form-control').forEach(el =>
+    el.classList.remove('is-valid', 'is-invalid'));
+  document.querySelectorAll('.field-error').forEach(el => el.classList.remove('show'));
+  document.getElementById('contactMsg').style.display = 'none';
+  document.getElementById('successState').classList.remove('show');
+  document.getElementById('contactForm').style.display = 'flex';
+  lucide.createIcons();
+}
 </script>
 
 <!-- AI Chat -->
@@ -208,5 +442,6 @@ async function sendAiMsg(){
   m.scrollTop=m.scrollHeight;
 }
 </script>
+
 </body>
 </html>
