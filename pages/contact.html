@@ -166,7 +166,7 @@
             <div class="section-label">⭐ Değerlendirme</div>
 
             <div class="form-group">
-              <label class="form-label">BudgetBuddy'yi kaç puan verirsiniz? <span style="color:var(--red)">*</span></label>
+              <label class="form-label">BudgetBuddy'yi kaç puan verirsiniz? <span style="color:var(--text-3);font-size:.75rem;">(isteğe bağlı)</span></label>
               <div class="rating-group">
                 <button type="button" class="rating-btn" data-val="1">1<br>😞</button>
                 <button type="button" class="rating-btn" data-val="2">2<br>😐</button>
@@ -326,7 +326,7 @@ document.getElementById('contactForm').addEventListener('submit', function(e) {
   e.preventDefault();
   let valid = true;
   Object.keys(rules).forEach(id => { if (!validate(id)) valid = false; });
-  if (!document.getElementById('fPuan').value) { document.getElementById('fPuanErr').classList.add('show'); valid = false; }
+  // Puan isteğe bağlı - zorunlu değil
   if (!document.getElementById('fKvkk').checked) { document.getElementById('fKvkkErr').classList.add('show'); valid = false; }
   else { document.getElementById('fKvkkErr').classList.remove('show'); }
   if (!valid) { Toast.error('Lütfen tüm zorunlu alanları doldurun!'); document.querySelector('.is-error')?.scrollIntoView({behavior:'smooth',block:'center'}); return; }
