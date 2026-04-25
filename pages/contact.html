@@ -3,96 +3,46 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
-  <meta http-equiv="Pragma" content="no-cache" />
-  <meta http-equiv="Expires" content="0" />
-  <title>Destek – BudgetBuddy</title>
+  <title>Destek & İletişim – BudgetBuddy</title>
   <link rel="stylesheet" href="/cerenyurduseven-budgetbuddy/assets/css/style.css?v=15" />
   <style>
-    .form-control.is-invalid {
-      border-color: var(--red) !important;
-      box-shadow: 0 0 0 3px rgba(239,68,68,.15);
-    }
-    .form-control.is-valid {
-      border-color: var(--green) !important;
-    }
-    .field-error {
-      font-size: .78rem;
-      color: var(--red);
-      margin-top: 5px;
-      display: none;
-    }
-    .field-error.show { display: block; }
-
-    .form-row {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 14px;
-    }
-    @media (max-width: 600px) {
-      .form-row { grid-template-columns: 1fr; }
-    }
-
-    .phone-wrap { display: flex; }
-    .phone-prefix {
-      background: rgba(255,255,255,.05);
-      border: 1px solid var(--border);
-      border-right: none;
-      border-radius: 8px 0 0 8px;
-      padding: 9px 12px;
-      font-size: .85rem;
-      color: var(--text-2);
-      white-space: nowrap;
-      display: flex;
-      align-items: center;
-      gap: 5px;
-    }
-    .phone-wrap .form-control { border-radius: 0 8px 8px 0; }
-
-    .char-count { font-size: .72rem; color: var(--text-2); text-align: right; margin-top: 4px; }
-    .char-count.warn { color: #facc15; }
-    .char-count.over { color: var(--red); }
-
-    .success-state {
-      display: none;
-      flex-direction: column;
-      align-items: center;
-      text-align: center;
-      padding: 32px 16px;
-      gap: 12px;
-    }
-    .success-state.show { display: flex; }
-    .success-icon-big {
-      font-size: 3rem;
-      animation: popIn .4s cubic-bezier(.34,1.56,.64,1) both;
-    }
-    @keyframes popIn {
-      from { transform: scale(.3); opacity: 0; }
-      to   { transform: scale(1);  opacity: 1; }
-    }
-    .success-state h3 { font-size: 1.15rem; font-weight: 700; color: var(--green); margin: 0; }
-    .success-state p  { font-size: .85rem; color: var(--text-2); line-height: 1.6; margin: 0; }
-    .success-ref {
-      font-size: .75rem;
-      font-family: monospace;
-      background: rgba(34,197,94,.1);
-      border: 1px solid rgba(34,197,94,.2);
-      border-radius: 8px;
-      padding: 8px 16px;
-      color: var(--green);
-    }
+    .input-wrapper { position: relative; }
+    .input-icon { position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--text-3);font-size:16px;pointer-events:none; }
+    .input-icon + .form-control { padding-left: 38px; }
+    .char-count { font-size:.72rem;color:var(--text-3);text-align:right;margin-top:4px; }
+    .char-count.warning { color:#f97316; }
+    .char-count.danger  { color:var(--red); }
+    .field-error { font-size:.78rem;color:var(--red);margin-top:4px;display:none; }
+    .field-error.show { display:block; }
+    .field-ok { font-size:.78rem;color:var(--green);margin-top:4px;display:none; }
+    .field-ok.show { display:block; }
+    .form-control.is-error { border-color:var(--red) !important; }
+    .form-control.is-valid { border-color:var(--green) !important; }
+    .rating-group { display:flex;gap:8px;flex-wrap:wrap;margin-top:8px; }
+    .rating-btn { width:52px;height:52px;border-radius:10px;background:var(--bg-2);border:1px solid var(--border);color:var(--text-2);cursor:pointer;font-size:.8rem;font-weight:600;transition:all .2s;line-height:1.3; }
+    .rating-btn:hover,.rating-btn.selected { background:var(--green);border-color:var(--green);color:#fff;transform:scale(1.08); }
+    .progress-wrap { height:6px;background:var(--bg-3);border-radius:3px;margin-bottom:6px;overflow:hidden; }
+    .progress-fill { height:100%;background:linear-gradient(90deg,#22c55e,#10b981);border-radius:3px;transition:width .4s ease;width:0%; }
+    .section-label { font-size:.72rem;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.08em;margin:20px 0 14px;padding-bottom:8px;border-bottom:1px solid var(--border); }
+    .success-box { display:none;background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.25);border-radius:16px;padding:32px;text-align:center; }
+    .success-box.show { display:block;animation:popIn .4s ease; }
+    @keyframes popIn { from{opacity:0;transform:scale(.95)} to{opacity:1;transform:scale(1)} }
+    .faq-item { border:1px solid var(--border);border-radius:10px;margin-bottom:8px;overflow:hidden; }
+    .faq-q { padding:14px 16px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;font-weight:600;font-size:.875rem;background:var(--bg-2);transition:background .2s;user-select:none; }
+    .faq-q:hover { background:var(--bg-3); }
+    .faq-a { padding:0 16px;max-height:0;overflow:hidden;transition:all .3s;font-size:.85rem;color:var(--text-2);line-height:1.6; }
+    .faq-item.open .faq-a { max-height:200px;padding:12px 16px; }
+    .faq-arrow { transition:transform .3s;font-size:11px; }
+    .faq-item.open .faq-arrow { transform:rotate(180deg); }
+    .contact-info-item { display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border); }
+    .contact-info-item:last-child { border-bottom:none; }
+    .contact-icon { width:42px;height:42px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0; }
   </style>
 </head>
 <body>
-
 <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Menüyü aç/kapat">
-  <div class="bars">
-    <span class="bar"></span>
-    <span class="bar"></span>
-    <span class="bar"></span>
-  </div>
+  <div class="bars"><span class="bar"></span><span class="bar"></span><span class="bar"></span></div>
 </button>
-
 <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
 <div class="app-layout">
@@ -111,7 +61,7 @@
       <a class="nav-link active" href="contact.html"><i data-lucide="mail"></i> Destek</a>
     </nav>
     <div class="sidebar-footer">
-      <div class="user-card" id="logoutBtn" title="Çıkış yap">
+      <div class="user-card" id="logoutBtn">
         <div class="user-avatar" id="userInitials">--</div>
         <div class="user-info">
           <div class="user-name" id="userName">Yükleniyor...</div>
@@ -126,152 +76,167 @@
     <div class="page-header">
       <div>
         <h1 class="page-title">Destek & İletişim</h1>
-        <p class="page-subtitle">Sorunlarını bildir, öneri gönder</p>
+        <p class="page-subtitle">Sorularınızı ve geri bildirimlerinizi gönderin</p>
       </div>
     </div>
 
     <div class="grid-2">
+      <!-- FORM TARAF -->
+      <div>
+        <div class="success-box" id="successBox">
+          <div style="font-size:3.5rem;margin-bottom:12px;">🎉</div>
+          <h3 style="color:var(--green);margin-bottom:8px;font-family:Syne,sans-serif;">Mesajınız gönderildi!</h3>
+          <p style="color:var(--text-2);font-size:.875rem;margin-bottom:20px;">En kısa sürede size dönüş yapacağız. Teşekkür ederiz!</p>
+          <button class="btn btn-secondary" onclick="resetForm()">✏️ Yeni Mesaj Gönder</button>
+        </div>
 
-      <!-- ── Form Kartı ── -->
-      <div class="card">
-        <div class="card-title">Mesaj Gönder</div>
+        <div class="card" id="formCard">
+          <div class="card-title">✉️ Bize Yazın</div>
 
-        <form id="contactForm" style="display:flex;flex-direction:column;gap:16px;" novalidate>
+          <div class="progress-wrap"><div class="progress-fill" id="fProgress"></div></div>
+          <p style="font-size:.72rem;color:var(--text-3);text-align:right;margin-bottom:16px;" id="fProgressLabel">Form %0 tamamlandı</p>
 
-          <!-- Ad & Soyad -->
-          <div class="form-row">
+          <form id="contactForm" novalidate>
+
+            <div class="section-label">👤 Kişisel Bilgiler</div>
+
+            <div class="form-grid cols-2">
+              <div class="form-group">
+                <label class="form-label">Ad <span style="color:var(--red)">*</span></label>
+                <div class="input-wrapper">
+                  <span class="input-icon">✏️</span>
+                  <input class="form-control" type="text" id="fAd" placeholder="Adınız" />
+                </div>
+                <div class="field-error" id="fAdErr">Ad en az 2 karakter olmalı.</div>
+                <div class="field-ok" id="fAdOk">✓ Geçerli</div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Soyad <span style="color:var(--red)">*</span></label>
+                <div class="input-wrapper">
+                  <span class="input-icon">✏️</span>
+                  <input class="form-control" type="text" id="fSoyad" placeholder="Soyadınız" />
+                </div>
+                <div class="field-error" id="fSoyadErr">Soyad en az 2 karakter olmalı.</div>
+                <div class="field-ok" id="fSoyadOk">✓ Geçerli</div>
+              </div>
+            </div>
+
             <div class="form-group">
-              <label class="form-label">Ad <span style="color:var(--red)">*</span></label>
-              <input type="text" class="form-control" id="cAd" placeholder="Adınız"
-                oninput="liveValidate(this,'ad')" onblur="liveValidate(this,'ad')" maxlength="50" />
-              <div class="field-error" id="err-ad">Ad alanı zorunludur (en az 2 karakter).</div>
+              <label class="form-label">E-posta <span style="color:var(--red)">*</span></label>
+              <div class="input-wrapper">
+                <span class="input-icon">📧</span>
+                <input class="form-control" type="email" id="fEmail" placeholder="ornek@email.com" />
+              </div>
+              <div class="field-error" id="fEmailErr">Geçerli bir e-posta adresi girin.</div>
+              <div class="field-ok" id="fEmailOk">✓ Geçerli e-posta</div>
             </div>
+
             <div class="form-group">
-              <label class="form-label">Soyad <span style="color:var(--red)">*</span></label>
-              <input type="text" class="form-control" id="cSoyad" placeholder="Soyadınız"
-                oninput="liveValidate(this,'soyad')" onblur="liveValidate(this,'soyad')" maxlength="50" />
-              <div class="field-error" id="err-soyad">Soyad alanı zorunludur (en az 2 karakter).</div>
+              <label class="form-label">Telefon <span style="color:var(--text-3);font-size:.75rem;">(isteğe bağlı)</span></label>
+              <div class="input-wrapper">
+                <span class="input-icon">📱</span>
+                <input class="form-control" type="tel" id="fTel" placeholder="05XX XXX XX XX" />
+              </div>
+              <div class="field-error" id="fTelErr">Geçerli telefon numarası girin (10-11 rakam).</div>
             </div>
-          </div>
 
-          <!-- E-posta -->
-          <div class="form-group">
-            <label class="form-label">E-posta <span style="color:var(--red)">*</span></label>
-            <input type="email" class="form-control" id="cEmail" placeholder="ornek@eposta.com"
-              oninput="liveValidate(this,'email')" onblur="liveValidate(this,'email')" maxlength="100" />
-            <div class="field-error" id="err-email">Geçerli bir e-posta adresi giriniz.</div>
-          </div>
+            <div class="section-label">📝 Mesaj Detayları</div>
 
-          <!-- Telefon -->
-          <div class="form-group">
-            <label class="form-label">
-              Telefon
-              <span style="font-size:.72rem;font-weight:400;color:var(--text-2);">— isteğe bağlı</span>
-            </label>
-            <div class="phone-wrap">
-              <div class="phone-prefix">🇹🇷 +90</div>
-              <input type="tel" class="form-control" id="cTelefon"
-                placeholder="555 123 45 67" maxlength="13"
-                oninput="formatTelefon(this)" />
+            <div class="form-group">
+              <label class="form-label">Konu <span style="color:var(--red)">*</span></label>
+              <select class="form-control" id="fKonu">
+                <option value="">-- Konu seçin --</option>
+                <option value="teknik">🔧 Teknik Sorun</option>
+                <option value="hesap">👤 Hesap Problemi</option>
+                <option value="oneri">💡 Öneri / İstek</option>
+                <option value="sikayet">😞 Şikayet</option>
+                <option value="diger">📝 Diğer</option>
+              </select>
+              <div class="field-error" id="fKonuErr">Lütfen bir konu seçin.</div>
             </div>
-            <div class="field-error" id="err-telefon">Geçerli bir telefon numarası giriniz (10 hane).</div>
-          </div>
 
-          <!-- Konu -->
-          <div class="form-group">
-            <label class="form-label">Konu <span style="color:var(--red)">*</span></label>
-            <select class="form-control" id="cKonu">
-              <option value="Teknik Sorun">🔧 Teknik Sorun</option>
-              <option value="Öneri">💡 Öneri</option>
-              <option value="Hesap Sorunu">👤 Hesap Sorunu</option>
-              <option value="Veri Sorunu">📊 Veri Sorunu</option>
-              <option value="Diğer">📬 Diğer</option>
-            </select>
-          </div>
-
-          <!-- Mesaj -->
-          <div class="form-group">
-            <label class="form-label">Mesajınız <span style="color:var(--red)">*</span></label>
-            <textarea class="form-control" id="cMesaj" rows="6"
-              placeholder="Sorununuzu veya önerinizi detaylıca açıklayın..."
-              oninput="updateCharCount(this); liveValidate(this,'mesaj')"
-              onblur="liveValidate(this,'mesaj')"
-              maxlength="1000" style="resize:vertical;"></textarea>
-            <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-top:4px;">
-              <div class="field-error" id="err-mesaj" style="margin-top:0;">Mesaj en az 10 karakter olmalıdır.</div>
-              <div class="char-count" id="charCount" style="margin-left:auto;">0 / 1000</div>
+            <div class="form-group">
+              <label class="form-label">Mesaj <span style="color:var(--red)">*</span></label>
+              <textarea class="form-control" id="fMesaj" rows="5" placeholder="Mesajınızı yazın... (en az 20 karakter)" maxlength="500" style="resize:vertical;"></textarea>
+              <div class="char-count" id="fMesajCount">0 / 500</div>
+              <div class="field-error" id="fMesajErr">Mesaj en az 20 karakter olmalıdır.</div>
+              <div class="field-ok" id="fMesajOk">✓ Geçerli mesaj</div>
             </div>
-          </div>
 
-          <button type="submit" class="btn btn-primary" id="contactBtn">
-            <i data-lucide="send"></i> Gönder
-          </button>
-          <div id="contactMsg" style="font-size:.85rem;text-align:center;display:none;"></div>
-        </form>
+            <div class="section-label">⭐ Değerlendirme</div>
 
-        <!-- Başarı -->
-        <div class="success-state" id="successState">
-          <div class="success-icon-big">🎉</div>
-          <h3>Mesajınız İletildi!</h3>
-          <p>Ekibimiz en kısa sürede e-posta ile geri dönecektir.<br/>Ortalama yanıt süresi <strong>24 saattir</strong>.</p>
-          <div class="success-ref" id="successRef">Referans: #BB-000000</div>
-          <button class="btn btn-primary" onclick="resetForm()" style="margin-top:4px;">
-            <i data-lucide="plus"></i> Yeni Mesaj Gönder
-          </button>
+            <div class="form-group">
+              <label class="form-label">BudgetBuddy'yi kaç puan verirsiniz? <span style="color:var(--red)">*</span></label>
+              <div class="rating-group">
+                <button type="button" class="rating-btn" data-val="1">1<br>😞</button>
+                <button type="button" class="rating-btn" data-val="2">2<br>😐</button>
+                <button type="button" class="rating-btn" data-val="3">3<br>🙂</button>
+                <button type="button" class="rating-btn" data-val="4">4<br>😊</button>
+                <button type="button" class="rating-btn" data-val="5">5<br>🤩</button>
+              </div>
+              <input type="hidden" id="fPuan" />
+              <div class="field-error" id="fPuanErr">Lütfen bir puan verin.</div>
+            </div>
+
+            <div class="form-group" style="margin-top:16px;">
+              <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;">
+                <input type="checkbox" id="fKvkk" style="margin-top:3px;accent-color:var(--green);width:16px;height:16px;flex-shrink:0;" />
+                <span style="font-size:.85rem;color:var(--text-2);">
+                  Kişisel verilerimin BudgetBuddy tarafından işlenmesine onay veriyorum. <span style="color:var(--red)">*</span>
+                </span>
+              </label>
+              <div class="field-error" id="fKvkkErr">KVKK onayı zorunludur.</div>
+            </div>
+
+            <button type="submit" class="btn btn-primary" id="fSubmit" style="width:100%;justify-content:center;padding:14px;font-size:1rem;margin-top:16px;">
+              📨 Gönder
+            </button>
+          </form>
         </div>
       </div>
 
-      <!-- ── SSS & Bilgi ── -->
-      <div style="display:flex;flex-direction:column;gap:16px;">
+      <!-- SAĞ TARAF -->
+      <div style="display:flex;flex-direction:column;gap:20px;">
         <div class="card">
-          <div class="card-title">Sık Sorulan Sorular</div>
-          <div style="display:flex;flex-direction:column;gap:0;">
-            <details style="border-bottom:1px solid var(--border);padding:14px 0;">
-              <summary style="cursor:pointer;font-weight:600;color:var(--text-1);list-style:none;">
-                Verilerimi nasıl dışa aktarabilirim?
-              </summary>
-              <p style="color:var(--text-2);font-size:.875rem;margin-top:10px;line-height:1.7;">
-                İşlemler sayfasında tabloyu filtreledikten sonra tarayıcınızın yazdır fonksiyonuyla PDF olarak kaydedebilirsiniz. Excel aktarımı yakında eklenecek.
-              </p>
-            </details>
-            <details style="border-bottom:1px solid var(--border);padding:14px 0;">
-              <summary style="cursor:pointer;font-weight:600;color:var(--text-1);list-style:none;">
-                Kategori ekleyebilir miyim?
-              </summary>
-              <p style="color:var(--text-2);font-size:.875rem;margin-top:10px;line-height:1.7;">
-                Evet! İşlemler sayfasında yeni işlem eklerken özel kategori oluşturabilirsiniz. Özel kategoriler sadece sana görünür.
-              </p>
-            </details>
-            <details style="border-bottom:1px solid var(--border);padding:14px 0;">
-              <summary style="cursor:pointer;font-weight:600;color:var(--text-1);list-style:none;">
-                Şifremi unuttum, ne yapmalıyım?
-              </summary>
-              <p style="color:var(--text-2);font-size:.875rem;margin-top:10px;line-height:1.7;">
-                Şu an için bu formu kullanarak destek talebi oluştur; ekibimiz sana yardım edecek. Şifre sıfırlama özelliği yakında eklenecek.
-              </p>
-            </details>
-            <details style="padding:14px 0;">
-              <summary style="cursor:pointer;font-weight:600;color:var(--text-1);list-style:none;">
-                Verilerim güvende mi?
-              </summary>
-              <p style="color:var(--text-2);font-size:.875rem;margin-top:10px;line-height:1.7;">
-                Şifreler bcrypt ile şifreleniyor. Veriler sadece sana ait ve başka kullanıcılarla paylaşılmıyor.
-              </p>
-            </details>
+          <div class="card-title">📞 İletişim Bilgileri</div>
+          <div style="margin-top:8px;">
+            <div class="contact-info-item">
+              <div class="contact-icon" style="background:rgba(34,197,94,.1);">📧</div>
+              <div><div style="font-size:.75rem;color:var(--text-3);">E-posta</div><div style="font-weight:600;">destek@budgetbuddy.com</div></div>
+            </div>
+            <div class="contact-info-item">
+              <div class="contact-icon" style="background:rgba(59,130,246,.1);">⏰</div>
+              <div><div style="font-size:.75rem;color:var(--text-3);">Yanıt Süresi</div><div style="font-weight:600;">24 saat içinde</div></div>
+            </div>
+            <div class="contact-info-item">
+              <div class="contact-icon" style="background:rgba(168,85,247,.1);">💬</div>
+              <div><div style="font-size:.75rem;color:var(--text-3);">Canlı Destek</div><div style="font-weight:600;">Buddy AI ile hemen yardım alın</div></div>
+            </div>
           </div>
         </div>
 
-        <div class="card" style="background:var(--green-dim);border-color:rgba(34,197,94,.2);">
-          <div style="display:flex;align-items:center;gap:12px;">
-            <div style="font-size:2rem;">💬</div>
-            <div>
-              <div style="font-weight:700;color:var(--green);margin-bottom:4px;">Hızlı Destek</div>
-              <div style="font-size:.85rem;color:var(--text-2);">Mesajlarınıza genellikle 24 saat içinde dönüş yapılmaktadır.</div>
+        <div class="card">
+          <div class="card-title">❓ Sıkça Sorulan Sorular</div>
+          <div style="margin-top:12px;">
+            <div class="faq-item">
+              <div class="faq-q">Verilerim güvende mi? <span class="faq-arrow">▼</span></div>
+              <div class="faq-a">Evet! 256-bit SSL şifreleme ile tüm verileriniz güvende saklanır.</div>
+            </div>
+            <div class="faq-item">
+              <div class="faq-q">Raporları nasıl indirebilirim? <span class="faq-arrow">▼</span></div>
+              <div class="faq-a">Raporlar sayfasından PDF veya CSV formatında indirebilirsiniz.</div>
+            </div>
+            <div class="faq-item">
+              <div class="faq-q">Şifremi unuttum, ne yapmalıyım? <span class="faq-arrow">▼</span></div>
+              <div class="faq-a">Profilim sayfasından şifrenizi güncelleyebilirsiniz.</div>
+            </div>
+            <div class="faq-item">
+              <div class="faq-q">Mobilde çalışıyor mu? <span class="faq-arrow">▼</span></div>
+              <div class="faq-a">Evet! BudgetBuddy tamamen responsive tasarıma sahip, tüm cihazlarda çalışır.</div>
             </div>
           </div>
         </div>
       </div>
-
     </div>
   </main>
 </div>
@@ -279,169 +244,117 @@
 <div id="toast-container"></div>
 <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
 <script src="/cerenyurduseven-budgetbuddy/assets/js/main.js?v=15"></script>
-
 <script>
-/* AUTH */
 (async () => {
-  try { await Auth.ben(); } catch { window.location.href = '/pages/giris.html'; return; }
+  try { await Auth.ben(); } catch { window.location.href = '/cerenyurduseven-budgetbuddy/pages/giris.html'; return; }
   lucide.createIcons();
+  const s = DB.get('bb_session');
+  if (s?.user) {
+    document.getElementById('fAd').value    = s.user.ad    || '';
+    document.getElementById('fSoyad').value = s.user.soyad || '';
+    document.getElementById('fEmail').value = s.user.email || '';
+    ['fAd','fSoyad','fEmail'].forEach(id => validate(id));
+    updateProgress();
+  }
 })();
 
-/* TELEFON FORMAT */
-function formatTelefon(el) {
-  let v = el.value.replace(/\D/g, '').replace(/^0/, '');
-  if (v.length > 3 && v.length <= 6)      v = v.slice(0,3) + ' ' + v.slice(3);
-  else if (v.length > 6 && v.length <= 8) v = v.slice(0,3) + ' ' + v.slice(3,6) + ' ' + v.slice(6);
-  else if (v.length > 8)                  v = v.slice(0,3) + ' ' + v.slice(3,6) + ' ' + v.slice(6,8) + ' ' + v.slice(8,10);
-  el.value = v;
-  const digits = el.value.replace(/\D/g, '');
-  if (digits.length > 0 && digits.length < 10) setInvalid(el, 'telefon');
-  else clearValidation(el, 'telefon');
-}
-
-/* KARAKTER SAYACI */
-function updateCharCount(el) {
-  const len = el.value.length;
-  const cc  = document.getElementById('charCount');
-  cc.textContent = len + ' / 1000';
-  cc.className   = 'char-count' + (len > 900 ? ' warn' : '') + (len >= 1000 ? ' over' : '');
-}
-
-/* VALIDATION */
 const rules = {
-  ad:    v => v.trim().length >= 2,
-  soyad: v => v.trim().length >= 2,
-  email: v => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim()),
-  mesaj: v => v.trim().length >= 10,
+  fAd:    v => v.trim().length >= 2,
+  fSoyad: v => v.trim().length >= 2,
+  fEmail: v => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim()),
+  fTel:   v => !v.trim() || /^[0-9]{10,11}$/.test(v.replace(/\s/g,'')),
+  fKonu:  v => v !== '',
+  fMesaj: v => v.trim().length >= 20,
 };
 
-function setInvalid(el, field) {
-  el.classList.add('is-invalid'); el.classList.remove('is-valid');
-  const e = document.getElementById('err-' + field);
-  if (e) e.classList.add('show');
-}
-function setValid(el, field) {
-  el.classList.remove('is-invalid'); el.classList.add('is-valid');
-  const e = document.getElementById('err-' + field);
-  if (e) e.classList.remove('show');
-}
-function clearValidation(el, field) {
-  el.classList.remove('is-invalid', 'is-valid');
-  const e = document.getElementById('err-' + field);
-  if (e) e.classList.remove('show');
-}
-function liveValidate(el, field) {
-  if (!el.value.length) { clearValidation(el, field); return; }
-  rules[field](el.value) ? setValid(el, field) : setInvalid(el, field);
+function validate(id) {
+  const el = document.getElementById(id);
+  const err = document.getElementById(id+'Err');
+  const ok  = document.getElementById(id+'Ok');
+  if (!el || !rules[id]) return true;
+  const isValid = rules[id](el.value);
+  el.classList.toggle('is-error', !isValid);
+  el.classList.toggle('is-valid', isValid);
+  if (err) err.classList.toggle('show', !isValid);
+  if (ok)  ok.classList.toggle('show', isValid);
+  return isValid;
 }
 
-/* SUBMIT */
-document.getElementById('contactForm').addEventListener('submit', async (e) => {
-  e.preventDefault();
-
-  const fields = {
-    ad:    document.getElementById('cAd'),
-    soyad: document.getElementById('cSoyad'),
-    email: document.getElementById('cEmail'),
-    mesaj: document.getElementById('cMesaj'),
-  };
-  const telEl = document.getElementById('cTelefon');
-
-  let gecerli = true;
-  for (const [field, el] of Object.entries(fields)) {
-    rules[field](el.value) ? setValid(el, field) : (setInvalid(el, field), gecerli = false);
-  }
-  const telDigits = telEl.value.replace(/\D/g, '');
-  if (telDigits.length > 0 && telDigits.length < 10) {
-    setInvalid(telEl, 'telefon'); gecerli = false;
-  }
-
-  const msg = document.getElementById('contactMsg');
-  if (!gecerli) {
-    msg.textContent = 'Lütfen kırmızı işaretli alanları düzeltin.';
-    msg.style.color = 'var(--red)'; msg.style.display = 'block';
-    return;
-  }
-
-  const btn  = document.getElementById('contactBtn');
-  btn.disabled  = true;
-  btn.innerHTML = '<div class="spinner" style="margin:0 auto;"></div>';
-  msg.style.display = 'none';
-
-  try {
-    await api.post('/contact', {
-      ad:      fields.ad.value.trim(),
-      soyad:   fields.soyad.value.trim(),
-      email:   fields.email.value.trim(),
-      telefon: telEl.value.trim() || null,
-      konu:    document.getElementById('cKonu').value,
-      mesaj:   fields.mesaj.value.trim(),
-    });
-
-    const ref = '#BB-' + Math.floor(100000 + Math.random() * 900000);
-    document.getElementById('successRef').textContent = 'Referans: ' + ref;
-    document.getElementById('contactForm').style.display = 'none';
-    document.getElementById('successState').classList.add('show');
-    lucide.createIcons();
-    Toast.success('Mesaj gönderildi!');
-
-  } catch (err) {
-    msg.textContent = err.message || 'Gönderim sırasında bir hata oluştu.';
-    msg.style.color = 'var(--red)'; msg.style.display = 'block';
-  } finally {
-    btn.disabled  = false;
-    btn.innerHTML = '<i data-lucide="send"></i> Gönder';
-    lucide.createIcons();
-  }
+Object.keys(rules).forEach(id => {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.addEventListener('blur',  () => { validate(id); updateProgress(); });
+  el.addEventListener('input', () => { if (el.classList.contains('is-error')) validate(id); updateProgress(); });
 });
 
-/* RESET */
+document.getElementById('fMesaj').addEventListener('input', function() {
+  const len = this.value.length;
+  const c = document.getElementById('fMesajCount');
+  c.textContent = len + ' / 500';
+  c.className = 'char-count' + (len > 450 ? ' danger' : len > 350 ? ' warning' : '');
+});
+
+document.querySelectorAll('.rating-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.rating-btn').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+    document.getElementById('fPuan').value = btn.dataset.val;
+    document.getElementById('fPuanErr').classList.remove('show');
+    updateProgress();
+  });
+});
+
+function updateProgress() {
+  const check = ['fAd','fSoyad','fEmail','fKonu','fMesaj'];
+  let filled = check.filter(id => rules[id]?.(document.getElementById(id)?.value||'')).length;
+  if (document.getElementById('fPuan').value) filled++;
+  const pct = Math.round((filled / 6) * 100);
+  document.getElementById('fProgress').style.width = pct + '%';
+  document.getElementById('fProgressLabel').textContent = 'Form %' + pct + ' tamamlandı';
+}
+
+document.querySelectorAll('.faq-q').forEach(q => {
+  q.addEventListener('click', () => {
+    const item = q.parentElement;
+    const open = item.classList.contains('open');
+    document.querySelectorAll('.faq-item').forEach(i => i.classList.remove('open'));
+    if (!open) item.classList.add('open');
+  });
+});
+
+document.getElementById('contactForm').addEventListener('submit', function(e) {
+  e.preventDefault();
+  let valid = true;
+  Object.keys(rules).forEach(id => { if (!validate(id)) valid = false; });
+  if (!document.getElementById('fPuan').value) { document.getElementById('fPuanErr').classList.add('show'); valid = false; }
+  if (!document.getElementById('fKvkk').checked) { document.getElementById('fKvkkErr').classList.add('show'); valid = false; }
+  else { document.getElementById('fKvkkErr').classList.remove('show'); }
+  if (!valid) { Toast.error('Lütfen tüm zorunlu alanları doldurun!'); document.querySelector('.is-error')?.scrollIntoView({behavior:'smooth',block:'center'}); return; }
+  const btn = document.getElementById('fSubmit');
+  btn.disabled = true; btn.innerHTML = '<div class="spinner" style="margin:0 auto;"></div>';
+  setTimeout(() => {
+    const data = { ad:document.getElementById('fAd').value, soyad:document.getElementById('fSoyad').value, email:document.getElementById('fEmail').value, tel:document.getElementById('fTel').value, konu:document.getElementById('fKonu').value, mesaj:document.getElementById('fMesaj').value, puan:document.getElementById('fPuan').value, tarih:new Date().toISOString() };
+    const msgs = DB.get('bb_contact_messages', []); msgs.push(data); DB.set('bb_contact_messages', msgs);
+    document.getElementById('formCard').style.display = 'none';
+    document.getElementById('successBox').classList.add('show');
+    Toast.success('Mesajınız başarıyla gönderildi!');
+  }, 1000);
+});
+
 function resetForm() {
   document.getElementById('contactForm').reset();
-  document.getElementById('charCount').textContent = '0 / 1000';
-  document.querySelectorAll('#contactForm .form-control').forEach(el =>
-    el.classList.remove('is-valid', 'is-invalid'));
-  document.querySelectorAll('.field-error').forEach(el => el.classList.remove('show'));
-  document.getElementById('contactMsg').style.display = 'none';
-  document.getElementById('successState').classList.remove('show');
-  document.getElementById('contactForm').style.display = 'flex';
-  lucide.createIcons();
+  document.getElementById('fPuan').value = '';
+  document.querySelectorAll('.rating-btn').forEach(b => b.classList.remove('selected'));
+  document.querySelectorAll('.is-error,.is-valid').forEach(el => el.classList.remove('is-error','is-valid'));
+  document.querySelectorAll('.field-error,.field-ok').forEach(el => el.classList.remove('show'));
+  document.getElementById('fProgress').style.width = '0%';
+  document.getElementById('fProgressLabel').textContent = 'Form %0 tamamlandı';
+  document.getElementById('fMesajCount').textContent = '0 / 500';
+  document.getElementById('fSubmit').disabled = false;
+  document.getElementById('fSubmit').innerHTML = '📨 Gönder';
+  document.getElementById('successBox').classList.remove('show');
+  document.getElementById('formCard').style.display = 'block';
 }
 </script>
-
-<!-- AI Chat -->
-<button id="aiChatBtn" style="position:fixed;bottom:24px;right:24px;z-index:999;width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,#22c55e,#10b981);border:none;cursor:pointer;box-shadow:0 4px 24px rgba(34,197,94,.4);display:flex;align-items:center;justify-content:center;font-size:24px;" onclick="toggleAiChat()">🤖</button>
-<div id="aiChatBox" style="display:none;position:fixed;bottom:92px;right:24px;z-index:998;width:310px;max-height:420px;background:#111318;border:1px solid rgba(255,255,255,.1);border-radius:16px;box-shadow:0 8px 48px rgba(0,0,0,.6);flex-direction:column;overflow:hidden;">
-  <div style="padding:14px 16px;border-bottom:1px solid rgba(255,255,255,.07);display:flex;justify-content:space-between;align-items:center;">
-    <span style="font-family:Syne,sans-serif;font-weight:700;color:#f0f2f8;font-size:.95rem;">🤖 BudgetBuddy AI</span>
-    <button onclick="toggleAiChat()" style="background:none;border:none;color:#8891a8;cursor:pointer;font-size:18px;line-height:1;">✕</button>
-  </div>
-  <div id="aiMessages" style="flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px;min-height:220px;max-height:280px;">
-    <div style="background:#1e2330;padding:10px 14px;border-radius:10px;color:#f0f2f8;font-size:.85rem;max-width:85%;">Merhaba! Finansal sorularınızı sorabilirsiniz. 💰</div>
-  </div>
-  <div style="padding:10px;border-top:1px solid rgba(255,255,255,.07);display:flex;gap:8px;">
-    <input id="aiInput" type="text" placeholder="Soru sorun..." style="flex:1;background:#1e2330;border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:9px 12px;color:#f0f2f8;font-size:.85rem;outline:none;" onkeydown="if(event.key==='Enter')sendAiMsg()" />
-    <button onclick="sendAiMsg()" style="background:linear-gradient(135deg,#22c55e,#10b981);border:none;border-radius:8px;width:38px;height:38px;cursor:pointer;font-size:16px;flex-shrink:0;">↑</button>
-  </div>
-</div>
-<script>
-function toggleAiChat(){var b=document.getElementById("aiChatBox");b.style.display=b.style.display==="none"?"flex":"none";}
-async function sendAiMsg(){
-  var i=document.getElementById("aiInput"),m=document.getElementById("aiMessages"),t=i.value.trim();
-  if(!t)return;i.value="";
-  m.innerHTML+='<div style="background:#22c55e22;padding:9px 13px;border-radius:10px;color:#f0f2f8;font-size:.85rem;max-width:85%;align-self:flex-end;margin-left:auto;">'+t+'</div>';
-  var id="ai-"+Date.now();
-  m.innerHTML+='<div id="'+id+'" style="background:#1e2330;padding:9px 13px;border-radius:10px;color:#8891a8;font-size:.85rem;max-width:85%;">⏳ Düşünüyor...</div>';
-  m.scrollTop=m.scrollHeight;
-  try{
-    var r=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:300,system:"Sen BudgetBuddy finansal asistanissin. Kisa ve yardimci ol. Turkce cevap ver.",messages:[{role:"user",content:t}]})});
-    var d=await r.json();
-    document.getElementById(id).style.color="#f0f2f8";
-    document.getElementById(id).innerHTML=d.content&&d.content[0]?d.content[0].text:"Cevap veremedim.";
-  }catch(e){document.getElementById(id).innerHTML="Baglanti hatasi.";}
-  m.scrollTop=m.scrollHeight;
-}
-</script>
-
 </body>
 </html>
