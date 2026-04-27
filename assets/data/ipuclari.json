@@ -1,1 +1,112 @@
-
+{
+  "ipuclari": [
+    {
+      "id": 1,
+      "baslik": "50/30/20 Kuralı",
+      "aciklama": "Gelirinizin %50'sini ihtiyaçlara, %30'unu isteklere, %20'sini tasarrufa ayırın.",
+      "kategori": "Tasarruf",
+      "icon": "💰",
+      "renk": "#22c55e",
+      "zorluk": "Kolay"
+    },
+    {
+      "id": 2,
+      "baslik": "Acil Durum Fonu",
+      "aciklama": "En az 3-6 aylık giderlerinizi karşılayacak bir acil durum fonu oluşturun.",
+      "kategori": "Güvenlik",
+      "icon": "🛡️",
+      "renk": "#3b82f6",
+      "zorluk": "Orta"
+    },
+    {
+      "id": 3,
+      "baslik": "Otomatik Tasarruf",
+      "aciklama": "Her ay maaş geldiğinde önce tasarruf hesabınıza otomatik transfer kurun.",
+      "kategori": "Tasarruf",
+      "icon": "🤖",
+      "renk": "#8b5cf6",
+      "zorluk": "Kolay"
+    },
+    {
+      "id": 4,
+      "baslik": "Gereksiz Abonelikleri İptal Et",
+      "aciklama": "Kullanmadığınız streaming, uygulama ve dergi aboneliklerini gözden geçirin.",
+      "kategori": "Gider Azaltma",
+      "icon": "✂️",
+      "renk": "#ef4444",
+      "zorluk": "Kolay"
+    },
+    {
+      "id": 5,
+      "baslik": "Yatırım Çeşitlendirmesi",
+      "aciklama": "Tüm birikimlerinizi tek bir yatırım aracına koymayın, riski dağıtın.",
+      "kategori": "Yatırım",
+      "icon": "📈",
+      "renk": "#f59e0b",
+      "zorluk": "Zor"
+    },
+    {
+      "id": 6,
+      "baslik": "Bütçe Takip Alışkanlığı",
+      "aciklama": "Her gün 5 dakika harcamalarınızı kaydedin. Küçük alışkanlıklar büyük fark yaratır.",
+      "kategori": "Alışkanlık",
+      "icon": "📒",
+      "renk": "#10b981",
+      "zorluk": "Kolay"
+    },
+    {
+      "id": 7,
+      "baslik": "Kredi Kartı Borcu",
+      "aciklama": "Kredi kartı borcunuzu her ay tam ödeyin. Faiz ödemek serveti eritir.",
+      "kategori": "Borç Yönetimi",
+      "icon": "💳",
+      "renk": "#ec4899",
+      "zorluk": "Orta"
+    },
+    {
+      "id": 8,
+      "baslik": "Fırsat Maliyeti",
+      "aciklama": "Her harcama kararında 'bu parayı yatırsaydım ne olurdu?' diye sorun.",
+      "kategori": "Düşünce",
+      "icon": "🤔",
+      "renk": "#06b6d4",
+      "zorluk": "Orta"
+    },
+    {
+      "id": 9,
+      "baslik": "Toplu Alım İndirimleri",
+      "aciklama": "Sık kullandığınız ürünleri toplu alarak %20-40 tasarruf sağlayabilirsiniz.",
+      "kategori": "Gider Azaltma",
+      "icon": "🛒",
+      "renk": "#f97316",
+      "zorluk": "Kolay"
+    },
+    {
+      "id": 10,
+      "baslik": "Pasif Gelir Kaynağı",
+      "aciklama": "Kira, temettü veya dijital ürün gibi pasif gelir kaynakları oluşturun.",
+      "kategori": "Gelir Artırma",
+      "icon": "💸",
+      "renk": "#a855f7",
+      "zorluk": "Zor"
+    },
+    {
+      "id": 11,
+      "baslik": "Finansal Hedef Belirle",
+      "aciklama": "Somut finansal hedefler belirleyin: '1 yılda 50.000₺ biriktir' gibi.",
+      "kategori": "Planlama",
+      "icon": "🎯",
+      "renk": "#14b8a6",
+      "zorluk": "Kolay"
+    },
+    {
+      "id": 12,
+      "baslik": "Enflasyona Karşı Korun",
+      "aciklama": "Paranızı enflasyon oranının üzerinde getiri sağlayan araçlarda değerlendirin.",
+      "kategori": "Yatırım",
+      "icon": "📊",
+      "renk": "#6366f1",
+      "zorluk": "Zor"
+    }
+  ]
+}
