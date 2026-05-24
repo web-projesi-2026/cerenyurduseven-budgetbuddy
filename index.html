@@ -8,7 +8,6 @@
   <meta http-equiv="Expires" content="0" />
   <title>Panel – BudgetBuddy</title>
   <link rel="icon" href="assets/img/favicon.png" type="image/png" />
-  <link rel="icon" href="/cerenyurduseven-budgetbuddy/assets/img/favicon.ico" type="image/x-icon" />
   <link rel="stylesheet" href="assets/css/style.css?v=15" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 </head>
@@ -102,21 +101,37 @@
       </div>
     </div>
 
-    <!-- Döviz Kuru Widget (YENİ) -->
+    <!-- Döviz Kuru Widget -->
     <div class="card mt-24" id="dovizCard">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
-        <div class="card-title" style="margin-bottom:0;">💱 Güncel Döviz Kurları <span style="font-size:.75rem;color:var(--text-3);font-weight:400;">(TRY bazlı)</span></div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;flex-wrap:wrap;gap:8px;">
+        <div>
+          <div class="card-title" style="margin-bottom:2px;">💱 Güncel Döviz Kurları</div>
+          <div style="font-size:.75rem;color:var(--text-3);">1 birim yabancı para = kaç Türk Lirası</div>
+        </div>
         <div style="display:flex;align-items:center;gap:10px;">
-          <span id="dovizGuncelleme" style="font-size:.75rem;color:var(--text-3);"></span>
-          <button class="btn btn-ghost btn-sm" id="dovizYenileBtn" title="Yenile">↻ Yenile</button>
+          <span id="dovizGuncelleme" style="font-size:.72rem;color:var(--text-3);"></span>
+          <button class="btn btn-ghost btn-sm" id="dovizYenileBtn" title="Yenile" style="display:flex;align-items:center;gap:4px;">
+            <span id="dovizYenileIcon">↻</span> Yenile
+          </button>
         </div>
       </div>
-      <div id="dovizList" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px;">
-        <div style="text-align:center;padding:20px;color:var(--text-3);grid-column:1/-1;">
-          <div class="spinner" style="margin:0 auto 8px;"></div>
+
+      <!-- Arama / filtre -->
+      <div style="margin:14px 0 16px;">
+        <input id="dovizAra" type="text" placeholder="🔍  Para birimi ara... (USD, EUR...)"
+          style="width:100%;box-sizing:border-box;background:var(--bg-2);border:1px solid var(--border);border-radius:8px;padding:9px 14px;color:var(--text-1);font-size:.85rem;outline:none;" />
+      </div>
+
+      <!-- Kart listesi -->
+      <div id="dovizList" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;">
+        <div style="text-align:center;padding:28px;color:var(--text-3);grid-column:1/-1;">
+          <div class="spinner" style="margin:0 auto 10px;"></div>
           Kurlar yükleniyor...
         </div>
       </div>
+
+      <!-- Kaynak notu -->
+      <div id="dovizKaynak" style="margin-top:12px;font-size:.7rem;color:var(--text-3);text-align:right;"></div>
     </div>
 
     <!-- Grafikler -->
@@ -247,59 +262,157 @@ document.getElementById('dateStr').textContent = new Date().toLocaleDateString('
   msgEl.textContent = msgs[Math.floor(Math.random() * msgs.length)];
 })();
 
-// ── Döviz Kuru Widget (YENİ) ─────────────────────────────
+// ── Döviz Kuru Widget ────────────────────────────────────
 const DOVIZ_CURRENCIES = [
-  { code: 'USD', flag: '🇺🇸', ad: 'Dolar' },
-  { code: 'EUR', flag: '🇪🇺', ad: 'Euro' },
-  { code: 'GBP', flag: '🇬🇧', ad: 'Sterlin' },
-  { code: 'CHF', flag: '🇨🇭', ad: 'Frank' },
-  { code: 'JPY', flag: '🇯🇵', ad: 'Yen' },
-  { code: 'SAR', flag: '🇸🇦', ad: 'Riyal' },
+  { code: 'usd', flag: '🇺🇸', ad: 'ABD Doları',    sembol: '$'  },
+  { code: 'eur', flag: '🇪🇺', ad: 'Euro',           sembol: '€'  },
+  { code: 'gbp', flag: '🇬🇧', ad: 'İngiliz Sterlini', sembol: '£' },
+  { code: 'chf', flag: '🇨🇭', ad: 'İsviçre Frangı', sembol: '₣'  },
+  { code: 'jpy', flag: '🇯🇵', ad: 'Japon Yeni',     sembol: '¥'  },
+  { code: 'sar', flag: '🇸🇦', ad: 'S.Arabistan Riyali', sembol: '﷼' },
+  { code: 'aed', flag: '🇦🇪', ad: 'BAE Dirhemi',    sembol: 'د.إ'},
+  { code: 'dkk', flag: '🇩🇰', ad: 'Danimarka Kronu', sembol: 'kr' },
 ];
 
-async function loadDoviz() {
-  const listEl = document.getElementById('dovizList');
-  const guncellemeEl = document.getElementById('dovizGuncelleme');
-  listEl.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-3);grid-column:1/-1;"><div class="spinner" style="margin:0 auto 8px;"></div>Kurlar yükleniyor...</div>';
+let dovizRates = {}; // son çekilen veriler
+let dovizKaynakAdi = '';
 
+// API fallback zinciri: biri çalışmazsa sıradakini dene
+async function fetchRatesFromAPI() {
+  // Önce jsDelivr CDN üzerinden @fawazahmed0/currency-api (en güvenilir, her zaman ücretsiz)
   try {
-    // Frankfurter API — ücretsiz, CORS açık, kayıt gerektirmez
-    const res = await fetch('https://api.frankfurter.app/latest?from=EUR&to=TRY,USD,GBP,CHF,JPY,SAR');
-    const data = await res.json();
-
-    // EUR/TRY oranını base al
-    const eurTry = data.rates.TRY;
-
-    // Her para birimi için TRY karşılığını hesapla
-    // API EUR tabanlı döndürür → TRY/X = TRY/EUR ÷ X/EUR
+    const res = await fetch('https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/try.json');
+    if (!res.ok) throw new Error('cdn fail');
+    const json = await res.json();
+    // Bu API try → diğerleri şeklinde döner, biz tersine çeviririz (1/oran)
     const rates = {};
-    rates['EUR'] = eurTry;
-    for (const [cur, val] of Object.entries(data.rates)) {
-      if (cur !== 'TRY') rates[cur] = eurTry / val;
+    for (const cur of DOVIZ_CURRENCIES) {
+      const val = json.try[cur.code];
+      if (val && val > 0) rates[cur.code.toUpperCase()] = 1 / val;
     }
+    dovizKaynakAdi = 'cdn.jsdelivr.net (fawazahmed0)';
+    return rates;
+  } catch(e1) {}
 
-    listEl.innerHTML = DOVIZ_CURRENCIES.map(c => {
-      const rate = rates[c.code];
-      if (!rate) return '';
-      return `
-        <div style="background:var(--bg-2);border:1px solid var(--border);border-radius:12px;padding:14px;text-align:center;transition:transform .2s,box-shadow .2s;" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 4px 16px rgba(0,0,0,.3)'" onmouseout="this.style.transform='none';this.style.boxShadow='none'">
-          <div style="font-size:1.6rem;margin-bottom:4px;">${c.flag}</div>
-          <div style="font-size:.7rem;color:var(--text-3);font-weight:600;letter-spacing:.05em;">${c.code}</div>
-          <div style="font-size:.75rem;color:var(--text-2);margin-bottom:6px;">${c.ad}</div>
-          <div style="font-size:1rem;font-weight:700;color:var(--text-1);">₺${rate.toLocaleString('tr-TR', {minimumFractionDigits:2,maximumFractionDigits:2})}</div>
-        </div>
-      `;
-    }).join('');
+  // Yedek 1: exchangerate-api open endpoint
+  try {
+    const res = await fetch('https://open.er-api.com/v6/latest/USD');
+    if (!res.ok) throw new Error('er-api fail');
+    const json = await res.json();
+    if (json.result !== 'success') throw new Error('er-api no success');
+    const usdTry = json.rates['TRY'];
+    const rates = {};
+    for (const cur of DOVIZ_CURRENCIES) {
+      const code = cur.code.toUpperCase();
+      if (code === 'USD') { rates['USD'] = usdTry; continue; }
+      const val = json.rates[code];
+      if (val && val > 0) rates[code] = usdTry / val;
+    }
+    dovizKaynakAdi = 'open.er-api.com';
+    return rates;
+  } catch(e2) {}
 
-    const now = new Date();
-    guncellemeEl.textContent = 'Güncellendi: ' + now.toLocaleTimeString('tr-TR', {hour:'2-digit',minute:'2-digit'});
+  // Yedek 2: Frankfurter
+  try {
+    const res = await fetch('https://api.frankfurter.app/latest?from=USD&to=TRY,EUR,GBP,CHF,JPY,SAR,AED,DKK');
+    if (!res.ok) throw new Error('frankfurter fail');
+    const json = await res.json();
+    const usdTry = json.rates['TRY'];
+    const rates = { USD: usdTry };
+    for (const [cur, val] of Object.entries(json.rates)) {
+      if (cur !== 'TRY') rates[cur] = usdTry / val;
+    }
+    dovizKaynakAdi = 'api.frankfurter.app';
+    return rates;
+  } catch(e3) {}
 
-  } catch(e) {
-    listEl.innerHTML = '<div style="text-align:center;padding:16px;color:var(--text-3);grid-column:1/-1;">⚠️ Döviz kurları yüklenemedi. İnternet bağlantınızı kontrol edin.</div>';
-  }
+  return null; // hepsi başarısız
 }
 
-document.getElementById('dovizYenileBtn').addEventListener('click', loadDoviz);
+let dovizFiltre = '';
+
+function renderDovizCards() {
+  const listEl = document.getElementById('dovizList');
+  const filtre = dovizFiltre.toLowerCase();
+
+  const gorunen = DOVIZ_CURRENCIES.filter(c =>
+    !filtre ||
+    c.code.includes(filtre) ||
+    c.ad.toLowerCase().includes(filtre)
+  );
+
+  if (!gorunen.length) {
+    listEl.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-3);grid-column:1/-1;">Eşleşen para birimi bulunamadı.</div>';
+    return;
+  }
+
+  listEl.innerHTML = gorunen.map(c => {
+    const code = c.code.toUpperCase();
+    const rate = dovizRates[code];
+    if (!rate) return '';
+
+    // Kur rengini belirle (anlık için sabit yeşil, sonradan trend eklenebilir)
+    return `
+      <div style="background:var(--bg-2);border:1px solid var(--border);border-radius:14px;padding:16px 12px;text-align:center;cursor:default;transition:transform .2s,box-shadow .2s,border-color .2s;"
+        onmouseover="this.style.transform='translateY(-3px)';this.style.boxShadow='0 6px 20px rgba(0,0,0,.35)';this.style.borderColor='rgba(34,197,94,.4)'"
+        onmouseout="this.style.transform='none';this.style.boxShadow='none';this.style.borderColor='var(--border)'">
+        <div style="font-size:2rem;margin-bottom:6px;line-height:1;">${c.flag}</div>
+        <div style="font-size:.65rem;color:var(--text-3);font-weight:700;letter-spacing:.08em;margin-bottom:2px;">${code}</div>
+        <div style="font-size:.72rem;color:var(--text-2);margin-bottom:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${c.ad}</div>
+        <div style="background:var(--bg-3);border-radius:8px;padding:8px 4px;">
+          <div style="font-size:.65rem;color:var(--text-3);margin-bottom:2px;">1 ${code} =</div>
+          <div style="font-size:1.05rem;font-weight:800;color:var(--green);">
+            ₺${rate.toLocaleString('tr-TR', {minimumFractionDigits:2, maximumFractionDigits:2})}
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+async function loadDoviz(yenile = false) {
+  const listEl        = document.getElementById('dovizList');
+  const guncellemeEl  = document.getElementById('dovizGuncelleme');
+  const kaynakEl      = document.getElementById('dovizKaynak');
+  const ikonEl        = document.getElementById('dovizYenileIcon');
+
+  if (yenile) { ikonEl.style.animation = 'spin .6s linear infinite'; }
+  listEl.innerHTML = '<div style="text-align:center;padding:28px;color:var(--text-3);grid-column:1/-1;"><div class="spinner" style="margin:0 auto 10px;"></div>Kurlar yükleniyor...</div>';
+
+  const rates = await fetchRatesFromAPI();
+  ikonEl.style.animation = '';
+
+  if (!rates || Object.keys(rates).length === 0) {
+    listEl.innerHTML = `
+      <div style="grid-column:1/-1;text-align:center;padding:24px;">
+        <div style="font-size:2rem;margin-bottom:8px;">⚠️</div>
+        <div style="color:var(--text-2);font-size:.9rem;margin-bottom:6px;">Döviz kurları yüklenemedi.</div>
+        <div style="color:var(--text-3);font-size:.8rem;">İnternet bağlantınızı kontrol edip yenileyin.</div>
+      </div>`;
+    guncellemeEl.textContent = 'Bağlantı hatası';
+    return;
+  }
+
+  dovizRates = rates;
+  renderDovizCards();
+
+  const now = new Date();
+  guncellemeEl.textContent = 'Güncellendi: ' + now.toLocaleTimeString('tr-TR', {hour:'2-digit', minute:'2-digit'});
+  kaynakEl.textContent = 'Kaynak: ' + dovizKaynakAdi;
+}
+
+// Arama filtresi
+document.getElementById('dovizAra').addEventListener('input', function() {
+  dovizFiltre = this.value.trim();
+  if (Object.keys(dovizRates).length) renderDovizCards();
+});
+
+document.getElementById('dovizYenileBtn').addEventListener('click', () => loadDoviz(true));
+
+// Spin animasyonu için style
+const spinStyle = document.createElement('style');
+spinStyle.textContent = '@keyframes spin { to { transform: rotate(360deg); } }';
+document.head.appendChild(spinStyle);
 // ─────────────────────────────────────────────────────────
 
 let aylikChart, katChart;
@@ -309,7 +422,7 @@ async function init() {
   try { await Auth.ben(); } catch { window.location.href = '/cerenyurduseven-budgetbuddy/pages/giris.html'; return; }
 
   // Döviz kurlarını yükle (arka planda)
-  loadDoviz();
+  loadDoviz(false);
 
   const [ozet, aylik, kat, tasarruf] = await Promise.all([
     Reports.ozet(), Reports.aylik(), Reports.kategoriler({ tur: 'gider' }), Reports.tasarruf()
