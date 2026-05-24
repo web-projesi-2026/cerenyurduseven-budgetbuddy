@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="tr">
 <head>
@@ -8,6 +7,7 @@
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
   <title>Panel – BudgetBuddy</title>
+  <link rel="icon" href="assets/img/favicon.png" type="image/png" />
   <link rel="stylesheet" href="assets/css/style.css?v=15" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 </head>
@@ -32,7 +32,7 @@
       <div class="logo-icon">💰</div>
       <span>BudgetBuddy</span>
     </div>
-        <nav class="sidebar-nav">
+    <nav class="sidebar-nav">
       <span class="nav-section-title">Genel</span>
       <a class="nav-link active" href="/cerenyurduseven-budgetbuddy/index.html"><i data-lucide="layout-dashboard"></i> Panel</a>
       <a class="nav-link" href="pages/project.html"><i data-lucide="list"></i> İşlemler</a>
@@ -101,8 +101,25 @@
       </div>
     </div>
 
+    <!-- Döviz Kuru Widget (YENİ) -->
+    <div class="card mt-24" id="dovizCard">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+        <div class="card-title" style="margin-bottom:0;">💱 Güncel Döviz Kurları <span style="font-size:.75rem;color:var(--text-3);font-weight:400;">(TRY bazlı)</span></div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span id="dovizGuncelleme" style="font-size:.75rem;color:var(--text-3);"></span>
+          <button class="btn btn-ghost btn-sm" id="dovizYenileBtn" title="Yenile">↻ Yenile</button>
+        </div>
+      </div>
+      <div id="dovizList" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px;">
+        <div style="text-align:center;padding:20px;color:var(--text-3);grid-column:1/-1;">
+          <div class="spinner" style="margin:0 auto 8px;"></div>
+          Kurlar yükleniyor...
+        </div>
+      </div>
+    </div>
+
     <!-- Grafikler -->
-    <div class="grid-2 mb-24">
+    <div class="grid-2 mb-24 mt-24">
       <div class="card">
         <div class="card-title">Son 6 Ay – Gelir / Gider</div>
         <canvas id="aylikChart" height="220"></canvas>
@@ -149,14 +166,15 @@
         </div>
       </div>
     </div>
-  <!-- Favori İpuçları Widget -->
-  <div class="card mt-24" id="favIpucuCard" style="display:none;">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
-      <div class="card-title" style="margin-bottom:0;">❤️ Favori İpuçlarım</div>
-      <a href="pages/ipuclari.html" style="font-size:.8rem;color:var(--green);text-decoration:none;">Tümünü Gör →</a>
+
+    <!-- Favori İpuçları Widget -->
+    <div class="card mt-24" id="favIpucuCard" style="display:none;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+        <div class="card-title" style="margin-bottom:0;">❤️ Favori İpuçlarım</div>
+        <a href="pages/ipuclari.html" style="font-size:.8rem;color:var(--green);text-decoration:none;">Tümünü Gör →</a>
+      </div>
+      <div id="favIpucuList" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;"></div>
     </div>
-    <div id="favIpucuList" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;"></div>
-  </div>
   </main>
 </div>
 
@@ -205,7 +223,6 @@
 <script src="assets/js/main.js?v=15"></script>
 <script>
 // Tarih
-// Tarih
 document.getElementById('dateStr').textContent = new Date().toLocaleDateString('tr-TR', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
 
 // Karşılama mesajı
@@ -213,16 +230,12 @@ document.getElementById('dateStr').textContent = new Date().toLocaleDateString('
   var session = JSON.parse(localStorage.getItem('bb_session') || 'null');
   var ad = session && session.user ? session.user.ad : null;
   if (!ad) return;
-
   var hour = new Date().getHours();
   var greeting = hour < 12 ? 'Günaydın' : hour < 18 ? 'İyi günler' : 'İyi akşamlar';
-
   var titleEl = document.getElementById('welcomeTitle');
   var msgEl   = document.getElementById('welcomeMsg');
-
   titleEl.textContent = greeting + ', ' + ad + '! 👋';
   msgEl.style.display = 'block';
-
   var msgs = [
     '💰 Bugün bütçeni kontrol etmeyi unutma!',
     '📊 Finansal hedeflerine bir adım daha yakınsın.',
@@ -233,17 +246,74 @@ document.getElementById('dateStr').textContent = new Date().toLocaleDateString('
   msgEl.textContent = msgs[Math.floor(Math.random() * msgs.length)];
 })();
 
+// ── Döviz Kuru Widget (YENİ) ─────────────────────────────
+const DOVIZ_CURRENCIES = [
+  { code: 'USD', flag: '🇺🇸', ad: 'Dolar' },
+  { code: 'EUR', flag: '🇪🇺', ad: 'Euro' },
+  { code: 'GBP', flag: '🇬🇧', ad: 'Sterlin' },
+  { code: 'CHF', flag: '🇨🇭', ad: 'Frank' },
+  { code: 'JPY', flag: '🇯🇵', ad: 'Yen' },
+  { code: 'SAR', flag: '🇸🇦', ad: 'Riyal' },
+];
+
+async function loadDoviz() {
+  const listEl = document.getElementById('dovizList');
+  const guncellemeEl = document.getElementById('dovizGuncelleme');
+  listEl.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-3);grid-column:1/-1;"><div class="spinner" style="margin:0 auto 8px;"></div>Kurlar yükleniyor...</div>';
+
+  try {
+    // Frankfurter API — ücretsiz, CORS açık, kayıt gerektirmez
+    const res = await fetch('https://api.frankfurter.app/latest?from=EUR&to=TRY,USD,GBP,CHF,JPY,SAR');
+    const data = await res.json();
+
+    // EUR/TRY oranını base al
+    const eurTry = data.rates.TRY;
+
+    // Her para birimi için TRY karşılığını hesapla
+    // API EUR tabanlı döndürür → TRY/X = TRY/EUR ÷ X/EUR
+    const rates = {};
+    rates['EUR'] = eurTry;
+    for (const [cur, val] of Object.entries(data.rates)) {
+      if (cur !== 'TRY') rates[cur] = eurTry / val;
+    }
+
+    listEl.innerHTML = DOVIZ_CURRENCIES.map(c => {
+      const rate = rates[c.code];
+      if (!rate) return '';
+      return `
+        <div style="background:var(--bg-2);border:1px solid var(--border);border-radius:12px;padding:14px;text-align:center;transition:transform .2s,box-shadow .2s;" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 4px 16px rgba(0,0,0,.3)'" onmouseout="this.style.transform='none';this.style.boxShadow='none'">
+          <div style="font-size:1.6rem;margin-bottom:4px;">${c.flag}</div>
+          <div style="font-size:.7rem;color:var(--text-3);font-weight:600;letter-spacing:.05em;">${c.code}</div>
+          <div style="font-size:.75rem;color:var(--text-2);margin-bottom:6px;">${c.ad}</div>
+          <div style="font-size:1rem;font-weight:700;color:var(--text-1);">₺${rate.toLocaleString('tr-TR', {minimumFractionDigits:2,maximumFractionDigits:2})}</div>
+        </div>
+      `;
+    }).join('');
+
+    const now = new Date();
+    guncellemeEl.textContent = 'Güncellendi: ' + now.toLocaleTimeString('tr-TR', {hour:'2-digit',minute:'2-digit'});
+
+  } catch(e) {
+    listEl.innerHTML = '<div style="text-align:center;padding:16px;color:var(--text-3);grid-column:1/-1;">⚠️ Döviz kurları yüklenemedi. İnternet bağlantınızı kontrol edin.</div>';
+  }
+}
+
+document.getElementById('dovizYenileBtn').addEventListener('click', loadDoviz);
+// ─────────────────────────────────────────────────────────
+
 let aylikChart, katChart;
 
 async function init() {
   // Oturum kontrolü
- try { await Auth.ben(); } catch { window.location.href = '/cerenyurduseven-budgetbuddy/pages/giris.html'; return; }
+  try { await Auth.ben(); } catch { window.location.href = '/cerenyurduseven-budgetbuddy/pages/giris.html'; return; }
+
+  // Döviz kurlarını yükle (arka planda)
+  loadDoviz();
 
   const [ozet, aylik, kat, tasarruf] = await Promise.all([
     Reports.ozet(), Reports.aylik(), Reports.kategoriler({ tur: 'gider' }), Reports.tasarruf()
   ]);
 
-  // Stat kartlar
   // Sayaç animasyonu ile değerleri göster
   function animateValue(el, target) {
     el.setAttribute('data-counter', target);
@@ -264,7 +334,7 @@ async function init() {
   document.getElementById('statGelirSub').textContent = `Toplam: ${formatPara(ozet.toplam_gelir)}`;
   document.getElementById('statGiderSub').textContent = `Toplam: ${formatPara(ozet.toplam_gider)}`;
 
-  // Son işlemler - tab filtreleme ile
+  // Son işlemler
   const txAll = await Transactions.list();
   let tumIslemler = txAll.transactions;
 
@@ -287,7 +357,6 @@ async function init() {
       </tr>
     `).join('');
 
-    // Dinamik toplam - animasyonlu
     const gelir = slice.filter(t=>t.tur==='gelir').reduce((s,t)=>s+Number(t.miktar),0);
     const gider = slice.filter(t=>t.tur==='gider').reduce((s,t)=>s+Number(t.miktar),0);
     const net   = gelir - gider;
@@ -312,7 +381,6 @@ async function init() {
       renderTablo(tab === 'hepsi' ? tumIslemler : tumIslemler.filter(t => t.tur === tab));
     });
   });
-  // İlk tab aktif
   const firstTab = document.querySelector('.tab-btn[data-tab="hepsi"]');
   if (firstTab) firstTab.classList.add('active');
 
@@ -363,9 +431,7 @@ async function init() {
   if (tasarruf.hedefler.length) {
     document.getElementById('tasarrufCard').style.display = 'block';
     const dotsEl = document.getElementById('sliderDots');
-
     document.getElementById('tasarrufList').innerHTML = tasarruf.hedefler.map((h, i) => {
-      // Renk: %0-40 kırmızı, %40-75 sarı, %75-100 yeşil
       const renk = h.yuzde < 40 ? '#ef4444' : h.yuzde < 75 ? '#f59e0b' : '#22c55e';
       const emoji = h.yuzde < 40 ? '🔴' : h.yuzde < 75 ? '🟡' : '🟢';
       return `
@@ -388,7 +454,6 @@ async function init() {
         </div>`;
     }).join('');
 
-    // Slider dot'larını oluştur
     tasarruf.hedefler.forEach((_, i) => {
       const dot = document.createElement('button');
       dot.className = 'slide-dot';
@@ -396,18 +461,14 @@ async function init() {
       dotsEl.appendChild(dot);
     });
 
-    // Slider'ı başlat
     initSlider();
 
-    // Progress bar animasyonu - 0'dan hedefe doğru dolar
     setTimeout(() => {
       document.querySelectorAll('.progress-anim').forEach(bar => {
         bar.style.width = bar.getAttribute('data-target') + '%';
       });
     }, 300);
   }
-
-
 
   lucide.createIcons();
 
@@ -417,12 +478,10 @@ async function init() {
       const userId = DB.get('bb_session')?.user?.id || 'demo';
       const favs = DB.get('bb_favoriler_' + userId, []);
       if (!favs.length) return;
-
       const res = await fetch('/cerenyurduseven-budgetbuddy/assets/data/ipuclari.json');
       const data = await res.json();
       const favIpuclari = data.ipuclari.filter(i => favs.includes(i.id));
       if (!favIpuclari.length) return;
-
       document.getElementById('favIpucuCard').style.display = 'block';
       document.getElementById('favIpucuList').innerHTML = favIpuclari.map(ip => `
         <div style="background:var(--bg-3);border-radius:12px;padding:14px;border-left:3px solid ${ip.renk};transition:transform .2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='none'">
@@ -446,11 +505,9 @@ init().catch(err => { Toast.error('Veriler yüklenirken hata oluştu'); console.
     const key = 'bb_streak_' + session.user.id;
     const today = new Date().toISOString().split('T')[0];
     let streak = DB.get(key) || { count: 1, lastDate: today };
-    
     const yesterday = new Date();
     yesterday.setDate(yesterday.getDate() - 1);
     const yStr = yesterday.toISOString().split('T')[0];
-    
     if (streak.lastDate === yStr) {
       streak.count += 1;
       streak.lastDate = today;
@@ -459,22 +516,17 @@ init().catch(err => { Toast.error('Veriler yüklenirken hata oluştu'); console.
       streak = { count: 1, lastDate: today };
       DB.set(key, streak);
     }
-
     const welcomeMsg = document.getElementById('welcomeMsg');
-    if (welcomeMsg) {
-      if (streak.count >= 2) {
-        welcomeMsg.textContent = '🔥 ' + streak.count + ' gündür bütçeni takip ediyorsun! Harika gidiyorsun!';
-      }
+    if (welcomeMsg && streak.count >= 2) {
+      welcomeMsg.textContent = '🔥 ' + streak.count + ' gündür bütçeni takip ediyorsun! Harika gidiyorsun!';
     }
   } catch(e) {}
 })();
 
 // ── Yeni İşlem Modal JS ──────────────────────
 document.addEventListener('DOMContentLoaded', async () => {
-  // Bugünün tarihini otomatik seç
   document.getElementById('yiTarih').value = new Date().toISOString().split('T')[0];
 
-  // Kategorileri yükle
   const turEl = document.getElementById('yiTur');
   const katEl = document.getElementById('yiKategori');
 
@@ -489,7 +541,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   turEl.addEventListener('change', loadKats);
   await loadKats();
 
-  // Form gönder
   document.getElementById('yeniIslemForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     const msg = document.getElementById('yiMsg');
@@ -513,7 +564,6 @@ document.addEventListener('DOMContentLoaded', async () => {
       document.getElementById('yeniIslemForm').reset();
       document.getElementById('yiTarih').value = new Date().toISOString().split('T')[0];
       await loadKats();
-      // Sayfayı yenile
       setTimeout(() => location.reload(), 500);
     } catch(err) {
       msg.textContent = err.message;
@@ -522,8 +572,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   });
 });
-
 </script>
-
 </body>
 </html>
