@@ -7,10 +7,10 @@
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
   <title>Kayıt Ol – BudgetBuddy</title>
+  <link rel="icon" href="/cerenyurduseven-budgetbuddy/assets/img/favicon.png" type="image/png" />
   <link rel="stylesheet" href="/cerenyurduseven-budgetbuddy/assets/css/style.css?v=15" />
 </head>
 <body class="auth-body">
-
 <div class="auth-card">
   <div class="auth-logo">
     <div class="logo-icon">💰</div>
@@ -18,7 +18,6 @@
   </div>
   <h1 class="auth-title">Hesap oluştur</h1>
   <p class="auth-sub">Finansal özgürlüğüne ilk adımı at</p>
-
   <form class="auth-form" id="registerForm" novalidate>
     <div class="form-grid cols-2">
       <div class="form-group">
@@ -47,12 +46,10 @@
     </button>
     <div id="errorMsg" style="color:var(--red);font-size:.85rem;text-align:center;display:none;"></div>
   </form>
-
   <p class="auth-footer">
     Zaten hesabın var mı? <a href="giris.html">Giriş yap</a>
   </p>
 </div>
-
 <div id="toast-container"></div>
 <script src="/cerenyurduseven-budgetbuddy/assets/js/main.js?v=15"></script>
 <script>
@@ -65,7 +62,6 @@ document.getElementById('registerForm').addEventListener('submit', async (e) => 
   const email  = document.getElementById('email').value.trim();
   const sifre  = document.getElementById('sifre').value;
   const tekrar = document.getElementById('sifreTekrar').value;
-
   if (!ad || !soyad || !email || !sifre) {
     errEl.textContent = 'Lütfen tüm alanları doldurun.';
     errEl.style.display = 'block'; return;
@@ -78,11 +74,9 @@ document.getElementById('registerForm').addEventListener('submit', async (e) => 
     errEl.textContent = 'Şifreler eşleşmiyor.';
     errEl.style.display = 'block'; return;
   }
-
   btn.disabled = true;
   btn.innerHTML = '<div class="spinner" style="margin:0 auto;"></div>';
   errEl.style.display = 'none';
-
   try {
     const data = await Auth.kayit(ad, soyad, email, sifre);
     if (data?.success) {

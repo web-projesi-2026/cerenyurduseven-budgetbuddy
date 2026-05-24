@@ -7,6 +7,7 @@
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
   <title>Giriş Yap – BudgetBuddy</title>
+  <link rel="icon" href="/cerenyurduseven-budgetbuddy/assets/img/favicon.png" type="image/png" />
   <link rel="stylesheet" href="/cerenyurduseven-budgetbuddy/assets/css/style.css?v=15" />
   <style>
     /* ── Güvenlik rozeti ── */
@@ -35,7 +36,6 @@
       width: 72px;
       height: 72px;
     }
-    /* Kafa */
     .buddy-face .head {
       width: 72px; height: 72px;
       background: linear-gradient(135deg, #fde68a, #fbbf24);
@@ -44,7 +44,6 @@
       box-shadow: 0 4px 16px rgba(251,191,36,.3);
       transition: all .3s;
     }
-    /* Gözler */
     .buddy-face .eyes {
       position: absolute;
       top: 24px; left: 0; right: 0;
@@ -60,22 +59,18 @@
       position: relative;
       overflow: hidden;
     }
-    /* Kapalı göz = yassı */
     .buddy-face.typing .eye {
       height: 3px;
       border-radius: 2px;
       margin-top: 3px;
     }
-    /* Mutlu göz */
     .buddy-face.happy .eye {
       background: #1e2330;
       height: 10px;
     }
-    /* Hata gözü */
     .buddy-face.error .eye {
       background: #ef4444;
     }
-    /* Göz parıltısı */
     .buddy-face .eye::after {
       content: '';
       position: absolute;
@@ -84,7 +79,6 @@
       border-radius: 50%;
       top: 1px; right: 1px;
     }
-    /* Ağız */
     .buddy-face .mouth {
       position: absolute;
       bottom: 18px;
@@ -109,7 +103,6 @@
     .buddy-face.happy .mouth {
       width: 30px; height: 14px;
     }
-    /* Yanaklar */
     .buddy-face .cheeks {
       position: absolute;
       top: 34px; left: 0; right: 0;
@@ -126,7 +119,6 @@
     .buddy-face.typing .cheek { opacity: 0; }
     .buddy-face.happy .cheek { opacity: 1; background: rgba(251,113,133,.6); }
 
-    /* Yazı etiketi */
     .password-label-row {
       display: flex;
       align-items: center;
@@ -134,7 +126,6 @@
       margin-bottom: 6px;
     }
 
-    /* Şifre input */
     .password-wrapper { position: relative; }
     .password-wrapper input { padding-right: 44px; }
     .toggle-pw {
@@ -149,7 +140,6 @@
     .toggle-pw:hover { color: var(--text-1); }
     .toggle-pw svg { transition: all .2s; }
 
-    /* Animasyonlar */
     @keyframes bounce {
       0%,100% { transform: translateY(0); }
       50%      { transform: translateY(-4px); }
@@ -189,7 +179,6 @@
     </div>
 
     <div class="form-group">
-      <!-- Sevimli yüz -->
       <div class="buddy-face-wrap">
         <div class="buddy-face" id="buddyFace">
           <div class="head">
@@ -212,7 +201,6 @@
       <div class="password-wrapper">
         <input class="form-control" type="password" id="sifre" placeholder="••••••••" required autocomplete="current-password" />
         <button type="button" class="toggle-pw" id="togglePw" title="Şifreyi göster/gizle">
-          <!-- Göz ikonu -->
           <svg id="eyeOpen" width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2"/></svg>
           <svg id="eyeClosed" width="20" height="20" viewBox="0 0 24 24" fill="none" style="display:none;"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="1" y1="1" x2="23" y2="23" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
         </button>
@@ -232,7 +220,6 @@
 
 <div id="toast-container"></div>
 <script>
-// ── Inline DB ve Auth (main.js yüklenmeden önce) ──
 const DB = {
   get(key, def = null) {
     try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : def; } catch { return def; }
@@ -272,7 +259,6 @@ const Toast = {
   error: (m) => Toast.show(m, 'error'),
 };
 
-// Demo verileri yükle
 function loadDemoData() {
   const demoUser = { id: 'demo_user', ad: 'Demo', soyad: 'Kullanıcı', email: 'demo@budgetbuddy.com', sifre: 'demo123' };
   const users = DB.get('bb_users', []);
@@ -285,7 +271,6 @@ loadDemoData();
 </script>
 <script src="/cerenyurduseven-budgetbuddy/assets/js/main.js?v=15"></script>
 <script>
-// Yönlendirme
 (async () => {
   try {
     const d = await Auth.ben();
@@ -303,18 +288,16 @@ function setFace(state) {
   face.className = 'buddy-face ' + state;
 }
 
-// Şifre alanı etkileşimleri
 sifreEl.addEventListener('focus',  () => setFace(''));
 sifreEl.addEventListener('input',  () => setFace(sifreEl.value.length > 0 ? 'typing' : ''));
 sifreEl.addEventListener('blur',   () => setFace(''));
 
-// Göster/Gizle butonu
 togglePw.addEventListener('click', () => {
   if (sifreEl.type === 'password') {
     sifreEl.type = 'text';
     eyeOpen.style.display  = 'none';
     eyeClosed.style.display= 'block';
-    setFace('error'); // şaşırmış yüz
+    setFace('error');
     setTimeout(() => setFace(''), 600);
   } else {
     sifreEl.type = 'password';
@@ -324,7 +307,6 @@ togglePw.addEventListener('click', () => {
   }
 });
 
-// Giriş formu
 document.getElementById('loginForm').addEventListener('submit', async (e) => {
   e.preventDefault();
   const btn   = document.getElementById('submitBtn');
