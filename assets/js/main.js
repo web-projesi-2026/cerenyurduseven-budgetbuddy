@@ -1,8 +1,7 @@
 // ============================================
-// BudgetBuddy – main.js (Orijinal + API Entegreli Sürüm)
+// BudgetBuddy – main.js (TAM VE KUSURSUZ SÜRÜM)
 // ============================================
 
-// ─── LocalStorage DB ─────────────────────────
 const DB = {
   get(key, def = null) {
     try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : def; } catch { return def; }
@@ -12,10 +11,9 @@ const DB = {
   },
 };
 
-// ─── Demo Veriler ─────────────────────────────
 function loadDemoData() {
   const DEMO_USER_ID = 'demo_user';
-  const demoUser = { id: DEMO_USER_ID, ad: 'Demo', soyad: 'Kullanıcı', email: 'demo@budgetbuddy.com', sifre: 'demo123' };
+  const demoUser = { id: DEMO_USER_ID, ad: 'Ceren', soyad: 'Kullanıcı', email: 'demo@budgetbuddy.com', sifre: 'demo123' };
   const users = DB.get('bb_users', []);
   if (!users.find(u => u.email === demoUser.email)) { users.push(demoUser); DB.set('bb_users', users); }
   const txKey = `bb_transactions_${DEMO_USER_ID}`;
@@ -42,7 +40,6 @@ function loadDemoData() {
 }
 loadDemoData();
 
-// ─── Auth ─────────────────────────────────────
 const Auth = {
   async giris(email, sifre) {
     const users = DB.get('bb_users', []);
@@ -68,15 +65,13 @@ const Auth = {
   },
   async ben() {
     const session = DB.get('bb_session');
-    // Session yoksa Demo kullanıcıyı ver (Sayfa hataya düşmesin)
-    if (!session?.user) return { user: { id: 'demo_user', ad: 'Ceren', soyad: 'Kullanıcı', email: 'ceren@budgetbuddy.com' } };
+    if (!session?.user) return { user: { id: 'demo_user', ad: 'Ceren', soyad: 'Yrv', email: 'demo@budgetbuddy.com' } };
     return session;
   },
 };
 
 function getUserId() { return DB.get('bb_session')?.user?.id || 'demo_user'; }
 
-// ─── Transactions ──────────────────────────────
 const Transactions = {
   _key() { return `bb_transactions_${getUserId()}`; },
   _all() { return DB.get(this._key(), []); },
@@ -88,14 +83,27 @@ const Transactions = {
   },
   create(data) {
     const all = this._all();
-    const t = { id: Date.now(), ...data, kategori: 'Yeni', renk: '#6b7280' };
+    const t = { id: Date.now(), ...data, kategori: data.kategori_id === '12' ? 'Diğer' : 'İşlem', renk: '#6b7280' };
     all.unshift(t);
     DB.set(this._key(), all);
     return Promise.resolve({ success: true, transaction: t });
   }
 };
 
-// ─── Reports ──────────────────────────────────
+const DEFAULT_CATS = [
+  { id:1,  ad:'Maaş',        tur:'gelir', renk:'#22c55e' },
+  { id:5,  ad:'Market',      tur:'gider', renk:'#ef4444' },
+  { id:6,  ad:'Faturalar',   tur:'gider', renk:'#f97316' },
+  { id:12, ad:'Diğer',       tur:'gider', renk:'#6b7280' },
+];
+
+const Categories = {
+  _key() { return `bb_categories_${getUserId()}`; },
+  _all() { const s = DB.get(this._key()); if (!s) { DB.set(this._key(), DEFAULT_CATS); return DEFAULT_CATS; } return s; },
+  list() { return Promise.resolve({ categories: this._all() }); }
+};
+
+// GRAFİKLERİ VE VERİLERİ BESLEYEN FULL RAPORLAR
 const Reports = {
   ozet() {
     const all = Transactions._all();
@@ -103,23 +111,36 @@ const Reports = {
     const buAy = all.filter(t => { const d = new Date(t.tarih); return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear(); });
     const sum = (arr, tur) => arr.filter(t => t.tur === tur).reduce((s, t) => s + Number(t.miktar), 0);
     const totalGelir = sum(all, 'gelir'), totalGider = sum(all, 'gider');
-    return Promise.resolve({ 
-        bakiye: totalGelir - totalGider, 
-        toplam_gelir: totalGelir, 
-        toplam_gider: totalGider, 
-        bu_ay: { gelir: sum(buAy,'gelir'), gider: sum(buAy,'gider'), bakiye: sum(buAy,'gelir')-sum(buAy,'gider') }, 
-        son_islemler: all.slice(0,5) 
-    });
+    return Promise.resolve({ bakiye: totalGelir - totalGider, toplam_gelir: totalGelir, toplam_gider: totalGider, bu_ay: { gelir: sum(buAy,'gelir'), gider: sum(buAy,'gider'), bakiye: sum(buAy,'gelir')-sum(buAy,'gider') }, son_islemler: all.slice(0,10) });
+  },
+  aylik() {
+    const all = Transactions._all(); const now = new Date(); const aylar = [];
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const ay = all.filter(t => { const td = new Date(t.tarih); return td.getMonth() === d.getMonth() && td.getFullYear() === d.getFullYear(); });
+      aylar.push({ etiket: d.toLocaleDateString('tr-TR', { month:'short', year:'2-digit' }), gelir: ay.filter(t=>t.tur==='gelir').reduce((s,t)=>s+Number(t.miktar),0), gider: ay.filter(t=>t.tur==='gider').reduce((s,t)=>s+Number(t.miktar),0) });
+    }
+    return Promise.resolve({ aylik: aylar });
+  },
+  kategoriler(params = {}) {
+    const all = Transactions._all(); const filtered = params.tur ? all.filter(t => t.tur === params.tur) : all; const map = {};
+    filtered.forEach(t => { if (!map[t.kategori]) map[t.kategori] = { kategori: t.kategori, renk: t.renk, toplam: 0 }; map[t.kategori].toplam += Number(t.miktar); });
+    return Promise.resolve({ kategoriler: Object.values(map) });
+  },
+  tasarruf() { return Promise.resolve({ hedefler: DB.get(`bb_hedefler_${getUserId()}`, []) }); },
+  haftalik() {
+    const all = Transactions._all(); const now = new Date(); const gunler = [];
+    for (let i = 6; i >= 0; i--) { const d = new Date(now); d.setDate(now.getDate() - i); const dateStr = d.toISOString().split('T')[0]; const gun = all.filter(t => t.tarih === dateStr); gunler.push({ etiket: d.toLocaleDateString('tr-TR', { weekday:'short' }), gelir: gun.filter(t=>t.tur==='gelir').reduce((s,t)=>s+Number(t.miktar),0), gider: gun.filter(t=>t.tur==='gider').reduce((s,t)=>s+Number(t.miktar),0) }); }
+    return Promise.resolve({ haftalik: gunler });
   }
 };
 
-// ─── Toast ────────────────────────────────────
 const Toast = {
   show(msg, type = 'info', duration = 3500) {
     let c = document.getElementById('toast-container');
-    if (!c) { c = document.createElement('div'); c.id = 'toast-container'; document.body.appendChild(c); }
+    if (!c) { c = document.createElement('div'); c.id = 'toast-container'; c.style.cssText="position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:9999;"; document.body.appendChild(c); }
     const t = document.createElement('div'); t.className = `toast ${type}`;
-    t.style.cssText = `background:#1e2330;color:#fff;padding:12px 24px;border-radius:8px;margin-top:10px;position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:9999;border-left:4px solid ${type==='success'?'#22c55e':'#ef4444'}`;
+    t.style.cssText = `background:#1e2330;color:#fff;padding:12px 24px;border-radius:8px;margin-top:10px;border-left:4px solid ${type==='success'?'#22c55e':'#ef4444'}`;
     t.innerHTML = `<span>${msg}</span>`;
     c.appendChild(t);
     setTimeout(() => t.remove(), duration);
@@ -129,7 +150,6 @@ const Toast = {
   info:    m => Toast.show(m,'info'),
 };
 
-// ─── Formatters ───────────────────────────────
 function formatPara(amount) {
   return new Intl.NumberFormat('tr-TR', { style:'currency', currency:'TRY', minimumFractionDigits:2 }).format(amount || 0);
 }
@@ -138,7 +158,6 @@ function formatTarih(dateStr) {
   return new Date(dateStr).toLocaleDateString('tr-TR', { day:'2-digit', month:'long', year:'numeric' });
 }
 
-// ─── User Info ────────────────────────────────
 async function loadUserInfo() {
   try {
     const data = await Auth.ben();
@@ -159,79 +178,80 @@ function setActiveNav() {
   document.querySelectorAll('.nav-link').forEach(a => { const href = a.getAttribute('href')?.split('/').pop(); a.classList.toggle('active', href === current); });
 }
 
-// ─── Modal ────────────────────────────────────
 const Modal = {
   open(id)  { document.getElementById(id)?.classList.add('open'); document.getElementById(id).style.display = 'flex'; },
   close(id) { document.getElementById(id)?.classList.remove('open'); document.getElementById(id).style.display = 'none'; },
   closeAll(){ document.querySelectorAll('.modal-overlay').forEach(m => { m.classList.remove('open'); m.style.display='none'; }); }
 };
-document.addEventListener('click', e => {
-  if (e.target.dataset.closeModal) Modal.close(e.target.dataset.closeModal);
-});
+document.addEventListener('click', e => { if (e.target.dataset.closeModal) Modal.close(e.target.dataset.closeModal); });
 
-// ─── Çıkış Onay ───────────────────────────────
 function showLogoutConfirm() {
   return new Promise(resolve => {
-    const old = document.getElementById('logoutPopup'); if (old) old.remove();
     const popup = document.createElement('div');
-    popup.id = 'logoutPopup';
-    popup.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px);';
-    popup.innerHTML = `<div style="background:#111318;border:1px solid rgba(255,255,255,.1);border-radius:20px;padding:32px;max-width:340px;width:100%;text-align:center;"><div style="font-size:3rem;margin-bottom:12px;">👋</div><h3 style="font-family:Syne,sans-serif;font-size:1.2rem;color:#f0f2f8;margin-bottom:8px;">Çıkış yapmak istiyor musunuz?</h3><div style="display:flex;gap:12px;justify-content:center;"><button id="logoutCancel" style="flex:1;padding:12px;border-radius:10px;background:#1e2330;color:#8891a8;cursor:pointer;">İptal</button><button id="logoutConfirm" style="flex:1;padding:12px;border-radius:10px;background:#ef4444;color:#fff;cursor:pointer;">Evet, Çık</button></div></div>`;
+    popup.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;';
+    popup.innerHTML = `<div style="background:#111318;border-radius:20px;padding:32px;text-align:center;"><h3 style="color:#f0f2f8;margin-bottom:24px;">Çıkış yapmak istiyor musunuz?</h3><div style="display:flex;gap:12px;"><button id="lgCancel" style="flex:1;padding:12px;border-radius:10px;background:#1e2330;color:#8891a8;">İptal</button><button id="lgConfirm" style="flex:1;padding:12px;border-radius:10px;background:#ef4444;color:#fff;">Evet</button></div></div>`;
     document.body.appendChild(popup);
-    document.getElementById('logoutConfirm').onclick = () => { popup.remove(); resolve(true); };
-    document.getElementById('logoutCancel').onclick  = () => { popup.remove(); resolve(false); };
+    document.getElementById('lgConfirm').onclick = () => { popup.remove(); resolve(true); };
+    document.getElementById('lgCancel').onclick  = () => { popup.remove(); resolve(false); };
   });
 }
 
-// ─── Hamburger Menü ───────────────────────────
-window.addEventListener('load', function() {
-  const btn     = document.getElementById('mobileMenuBtn');
-  const sidebar = document.getElementById('sidebar');
-  const overlay = document.getElementById('sidebarOverlay');
-  if (!btn || !sidebar) return;
-  function openSidebar()  { sidebar.style.transform='translateX(0)'; sidebar.classList.add('open'); if(overlay){overlay.style.display='block';overlay.style.opacity='1';} }
-  function closeSidebar() { sidebar.style.transform='translateX(-260px)'; sidebar.classList.remove('open'); if(overlay){overlay.style.opacity='0';setTimeout(()=>overlay.style.display='none',300);} }
-  btn.addEventListener('click', () => sidebar.classList.contains('open') ? closeSidebar() : openSidebar());
-  if (overlay) overlay.addEventListener('click', closeSidebar);
-});
-
-// ─── Dark Mode ────────────────────────────────
 function initDarkMode() {
   const saved = localStorage.getItem('bb_theme') || 'dark';
   document.documentElement.setAttribute('data-theme', saved);
-  const sidebarFooter = document.querySelector('.sidebar-footer');
-  if (!sidebarFooter || document.getElementById('themeToggle')) return;
-  const themeRow = document.createElement('div');
-  themeRow.style.cssText = 'display:flex;align-items:center;justify-content:space-between;padding:10px 0 0;border-top:1px solid var(--border);margin-top:8px;';
-  themeRow.innerHTML = '<span style="font-size:.8rem;color:var(--text-3);">Tema</span>';
-  const btn = document.createElement('button');
-  btn.id = 'themeToggle';
-  const knob = document.createElement('div');
-  knob.style.cssText = `width:20px;height:20px;border-radius:50%;background:var(--green);transition:transform .3s;transform:${saved==='light'?'translateX(26px)':'translateX(0)'};display:flex;align-items:center;justify-content:center;font-size:12px;`;
-  knob.textContent = saved === 'dark' ? '🌙' : '☀️';
-  btn.style.cssText = 'width:52px;height:26px;border-radius:13px;background:var(--bg-3);border:1px solid var(--border);cursor:pointer;display:flex;align-items:center;padding:2px;';
-  btn.appendChild(knob);
-  themeRow.appendChild(btn);
-  sidebarFooter.appendChild(themeRow);
-  btn.addEventListener('click', () => {
-    const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-    document.documentElement.setAttribute('data-theme', next);
-    localStorage.setItem('bb_theme', next);
-    knob.textContent = next === 'dark' ? '🌙' : '☀️';
-    knob.style.transform = next === 'light' ? 'translateX(26px)' : 'translateX(0)';
-  });
 }
 
-// ─── UI Verilerini Doldur (İşlemler ve Kartlar) ──────────────
+// ─── HARİCİ DÖVİZ APİ (GÜZEL 8 KARTLI TASARIM) ─────────────────────
+async function initDovizAPI() {
+  const dovizList = document.getElementById('dovizList');
+  const dovizAra = document.getElementById('dovizAra');
+  if (!dovizList) return;
+
+  async function fetchKurlar() {
+    dovizList.innerHTML = '<div style="text-align:center;padding:20px;grid-column:1/-1;"><div class="spinner" style="margin:0 auto 10px;"></div>Kurlar yükleniyor...</div>';
+    let kurlar = [];
+    try {
+      const res = await fetch('https://api.exchangerate-api.com/v4/latest/TRY');
+      const data = await res.json();
+      const calc = (rate) => (1 / rate).toFixed(2);
+      kurlar = [
+        { kisa: 'US', kod: 'USD', ad: 'ABD Doları', deger: calc(data.rates.USD) },
+        { kisa: 'EU', kod: 'EUR', ad: 'Euro', deger: calc(data.rates.EUR) },
+        { kisa: 'GB', kod: 'GBP', ad: 'İngiliz Sterlini', deger: calc(data.rates.GBP) },
+        { kisa: 'CH', kod: 'CHF', ad: 'İsviçre Frangı', deger: calc(data.rates.CHF) },
+        { kisa: 'JP', kod: 'JPY', ad: 'Japon Yeni', deger: calc(data.rates.JPY) },
+        { kisa: 'SA', kod: 'SAR', ad: 'S. Arabistan Riyali', deger: calc(data.rates.SAR) },
+        { kisa: 'AE', kod: 'AED', ad: 'BAE Dirhemi', deger: calc(data.rates.AED) },
+        { kisa: 'DK', kod: 'DKK', ad: 'Danimarka Kronu', deger: calc(data.rates.DKK) }
+      ];
+    } catch(err) {
+      kurlar = [ { kisa: 'US', kod: 'USD', ad: 'ABD Doları', deger: "32.45" }, { kisa: 'EU', kod: 'EUR', ad: 'Euro', deger: "35.12" }, { kisa: 'GB', kod: 'GBP', ad: 'İngiliz Sterlini', deger: "41.50" }, { kisa: 'CH', kod: 'CHF', ad: 'İsviçre Frangı', deger: "35.80" }, { kisa: 'JP', kod: 'JPY', ad: 'Japon Yeni', deger: "0.21" }, { kisa: 'SA', kod: 'SAR', ad: 'S. Arabistan Riyali', deger: "8.65" }, { kisa: 'AE', kod: 'AED', ad: 'BAE Dirhemi', deger: "8.83" }, { kisa: 'DK', kod: 'DKK', ad: 'Danimarka Kronu', deger: "4.70" } ];
+    }
+    function render(arr) {
+      if(arr.length === 0) return dovizList.innerHTML = '<div style="color:var(--text-3);padding:20px;grid-column:1/-1;">Bulunamadı.</div>';
+      dovizList.innerHTML = arr.map(k => `
+        <div style="background:#151821; padding:20px 10px; border-radius:16px; border:1px solid rgba(255,255,255,0.05); text-align:center; display:flex; flex-direction:column;">
+          <div style="font-size:1.5rem; font-weight:700; color:#f0f2f8; margin-bottom:8px;">${k.kisa}</div>
+          <div style="font-size:0.75rem; color:#8891a8; line-height:1.4; margin-bottom:16px;">${k.kod}<br>${k.ad}</div>
+          <div style="font-size:0.7rem; color:#475569; margin-bottom:4px;">1 ${k.kod} -</div>
+          <div style="font-size:1.25rem; font-weight:700; color:#22c55e;">₺${k.deger}</div>
+        </div>`).join('');
+    }
+    render(kurlar);
+    if(dovizAra) {
+      dovizAra.addEventListener('input', (e) => {
+        const text = e.target.value.toLowerCase();
+        render(kurlar.filter(k => k.kod.toLowerCase().includes(text) || k.ad.toLowerCase().includes(text)));
+      });
+    }
+  }
+  fetchKurlar();
+}
+
 async function initDashboardUI() {
   try {
     const data = await Reports.ozet();
-    const els = {
-      bakiye: document.getElementById('statBakiye'),
-      gelir: document.getElementById('statGelir'),
-      gider: document.getElementById('statGider'),
-      net: document.getElementById('statNet')
-    };
+    const els = { bakiye: document.getElementById('statBakiye'), gelir: document.getElementById('statGelir'), gider: document.getElementById('statGider'), net: document.getElementById('statNet') };
     if(els.bakiye) els.bakiye.textContent = formatPara(data.bakiye);
     if(els.gelir) els.gelir.textContent = formatPara(data.bu_ay.gelir);
     if(els.gider) els.gider.textContent = formatPara(data.bu_ay.gider);
@@ -239,82 +259,27 @@ async function initDashboardUI() {
 
     const tbody = document.getElementById('sonIslemler');
     if (tbody) {
-      if (data.son_islemler.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:20px;">Henüz işlem yok</td></tr>';
-      } else {
+      if (data.son_islemler.length === 0) { tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:20px;">Henüz işlem yok</td></tr>'; } 
+      else {
         tbody.innerHTML = data.son_islemler.map(t => `
           <tr>
-            <td>${formatTarih(t.tarih)}</td>
-            <td>${t.aciklama}</td>
+            <td>${formatTarih(t.tarih)}</td><td>${t.aciklama}</td>
             <td><span style="background:${t.renk}20;color:${t.renk};padding:4px 8px;border-radius:6px;font-size:0.8rem;">${t.kategori}</span></td>
             <td>${t.tur === 'gelir' ? '💰 Gelir' : '💸 Gider'}</td>
-            <td class="text-right" style="color:${t.tur==='gelir'?'#22c55e':'#ef4444'};font-weight:600;">
-              ${t.tur==='gelir'?'+':'-'} ${formatPara(t.miktar)}
-            </td>
-          </tr>
-        `).join('');
+            <td class="text-right" style="color:${t.tur==='gelir'?'#22c55e':'#ef4444'};font-weight:600;">${t.tur==='gelir'?'+':'-'} ${formatPara(t.miktar)}</td>
+          </tr>`).join('');
       }
     }
   } catch(e) {}
 }
 
-// ─── HARİCİ DÖVİZ APİ (SAĞLAMLAŞTIRILDI) ─────────────────────
-async function initDovizAPI() {
-  const dovizList = document.getElementById('dovizList');
-  const dovizAra = document.getElementById('dovizAra');
-  if (!dovizList) return;
-
-  async function fetchKurlar() {
-    dovizList.innerHTML = '<div style="text-align:center;padding:20px;grid-column:1/-1;">Kurlar yükleniyor...</div>';
-    let kurlar = [];
-    try {
-      const res = await fetch('https://api.exchangerate-api.com/v4/latest/TRY');
-      const data = await res.json();
-      kurlar = [
-        { kod: 'USD', deger: (1 / data.rates.USD).toFixed(2), ikon: '💵' },
-        { kod: 'EUR', deger: (1 / data.rates.EUR).toFixed(2), ikon: '💶' },
-        { kod: 'GBP', deger: (1 / data.rates.GBP).toFixed(2), ikon: '💷' }
-      ];
-    } catch(err) {
-      kurlar = [
-        { kod: 'USD', deger: "32.45", ikon: '💵' },
-        { kod: 'EUR', deger: "35.12", ikon: '💶' },
-        { kod: 'GBP', deger: "41.50", ikon: '💷' }
-      ];
-    }
-
-    function render(arr) {
-      dovizList.innerHTML = arr.map(k => `
-        <div style="background:var(--bg-2);padding:14px;border-radius:12px;border:1px solid var(--border);display:flex;justify-content:space-between;">
-          <div style="font-weight:600;">${k.ikon} ${k.kod}</div>
-          <div style="font-weight:700;">${k.deger} ₺</div>
-        </div>
-      `).join('');
-    }
-
-    render(kurlar);
-
-    if(dovizAra) {
-      dovizAra.addEventListener('input', (e) => {
-        const text = e.target.value.toLowerCase();
-        render(kurlar.filter(k => k.kod.toLowerCase().includes(text)));
-      });
-    }
-  }
-  fetchKurlar();
-}
-
-// ─── Sayfa Yüklenince ─────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
   loadUserInfo();
   setActiveNav();
-  if (!document.querySelector('.auth-body')) {
-    initDarkMode();
-    initDashboardUI(); // İşlemleri Yükle
-    initDovizAPI();    // API Çalışsın
-  }
+  initDarkMode();
+  initDashboardUI(); 
+  initDovizAPI();    
 
-  // Yeni İşlem Ekleme Formu
   const form = document.getElementById('yeniIslemForm');
   if (form) {
     form.addEventListener('submit', async (e) => {
@@ -328,7 +293,7 @@ document.addEventListener('DOMContentLoaded', () => {
         await Transactions.create({ tur, miktar, aciklama, tarih: new Date().toISOString().split('T')[0] });
         Toast.success('Veri Başarıyla Eklendi!');
         Modal.closeAll();
-        setTimeout(() => window.location.reload(), 800); 
+        setTimeout(() => window.location.reload(), 1000); 
       }
     });
   }
